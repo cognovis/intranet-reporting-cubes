@@ -1,19 +1,20 @@
--- upgrade-3.2.10.0.0-3.2.11.0.0.sql
+-- upgrade-3.2.9.0.0-3.3.0.0.0.sql
+
+SELECT acs_log__debug('/packages/intranet-reporting-cubes/sql/postgresql/upgrade/upgrade-3.2.9.0.0-3.3.0.0.0.sql','');
 
 
 
 ----------------------------------------------------
 -- Add tables (if not already there).
-
+--
 create or replace function inline_0 ()
 returns integer as '
 DECLARE
-        v_count                 integer;
+	v_count		 integer;
 BEGIN
-        select	count(*) into v_count
-        from	user_tab_columns
-        where   lower(table_name) = ''im_reporting_cubes'';
-        IF v_count > 0 THEN return 0; END IF;
+	select	count(*) into v_count from user_tab_columns
+	where   lower(table_name) = ''im_reporting_cubes'';
+	IF v_count > 0 THEN return 0; END IF;
 
 	-- A cube is completely defined by the cube name
 	-- (timesheet, finance, ...) and the top and left variables.
@@ -57,7 +58,7 @@ BEGIN
 		value_hash_array	text
 	);
 
-        return 0;
+	return 0;
 end;' language 'plpgsql';
 select inline_0();
 drop function inline_0();
