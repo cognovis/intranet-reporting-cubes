@@ -144,6 +144,15 @@ if {"" != $end_date && ![regexp {[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]} $
 }
 
 
+
+
+# ------------------------------------------------------------
+# Deal with invoices related to multiple projects
+
+im_invoices_check_for_multi_project_invoices
+
+
+
 # ------------------------------------------------------------
 # Page Title & Help Text
 

@@ -86,6 +86,12 @@ if {![string equal "t" $read_p]} {
 
 
 # ------------------------------------------------------------
+# Deal with invoices related to multiple projects
+
+im_invoices_check_for_multi_project_invoices
+
+
+# ------------------------------------------------------------
 # Check Parameters
 
 # Check that Start & End-Date have correct format
