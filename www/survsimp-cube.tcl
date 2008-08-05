@@ -14,7 +14,7 @@ ad_page_contract {
     { top_var1 "creation_user" }
     { top_var2 "" }
     { top_var3 "" }
-    { left_var1 "survey question choice" }
+    { left_var1 "answer" }
     { left_var2 "" }
     { left_var3 "" }
     { survey_id:integer 0 }
