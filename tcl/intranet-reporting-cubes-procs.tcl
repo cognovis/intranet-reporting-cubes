@@ -41,6 +41,7 @@ ad_proc im_reporting_cubes_cube {
     { -cost_type_id {3700} }
     { -customer_type_id 0 }
     { -project_type_id 0 }
+    { -project_status_id 0 }
     { -customer_id 0 }
     { -survey_id 0 }
     { -creation_user_id 0 }
@@ -120,6 +121,7 @@ ad_proc im_reporting_cubes_cube {
 		-left_vars $left_vars \
 		-top_vars $top_vars \
 		-cost_type_id $cost_type_id \
+		-project_status_id $project_status_id \
 		-customer_type_id $customer_type_id \
 		-customer_id $customer_id \
             ]
@@ -214,6 +216,7 @@ ad_proc im_reporting_cubes_finance {
     { -left_vars "customer_name" }
     { -top_vars "" }
     { -cost_type_id {3700} }
+    { -project_status_id 0 }
     { -customer_type_id 0 }
     { -customer_id 0 }
 } {
@@ -247,7 +250,10 @@ ad_proc im_reporting_cubes_finance {
     if {"" != $customer_type_id && 0 != $customer_type_id} {
         lappend criteria "cust.company_type_id in ([join [im_sub_categories $customer_type_id] ", "])"
     }
-    set where_clause [join $criteria " and\n\t\t\t"]
+    if {"" != $project_status_id && 0 != $project_status_id} {
+        lappend criteria "mainp.project_status_id in ([join [im_sub_categories $project_status_id] ", "])"
+    }  
+  set where_clause [join $criteria " and\n\t\t\t"]
     if { ![empty_string_p $where_clause] } {
         set where_clause " and $where_clause"
     }
