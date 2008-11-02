@@ -8,6 +8,7 @@
 ad_library {
     Cubes Data-Warehouse Reporting Component Library
     @author frank.bergmann@project-open.com
+    @author klaus.hofeditz@project-open.com
 }
 
 # -------------------------------------------------------
@@ -48,7 +49,7 @@ ad_proc im_reporting_cubes_cube {
     { -related_object_id 0 }
     { -related_context_id 0 }
     { -cache_days 1 }
-    { -no_cache_p 0 }
+    { -no_cache_p 1 }
 } {
     Returns a DW cube as a list containing:
     - An array with the cube data
@@ -380,7 +381,8 @@ ad_proc im_reporting_cubes_finance {
         ns_write "</table>\n"
         return ""
     }
-    
+
+    # ad_return_complaint 1 [join $left_vars ", "]    
     # Scale is a list of lists. Example: {{2006 01} {2006 02} ...}
     # The last element is the grand total.
     set left_scale [db_list_of_lists left_scale "
@@ -388,6 +390,7 @@ ad_proc im_reporting_cubes_finance {
   	from		($middle_sql) c
   	order by	[join $left_vars ", "]
     "]
+
     set last_sigma [list]
     foreach t [lindex $left_scale 0] {
         lappend last_sigma $sigma
