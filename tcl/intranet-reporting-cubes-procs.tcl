@@ -228,7 +228,7 @@ ad_proc im_reporting_cubes_finance {
 } {
     # ------------------------------------------------------------
     # Defaults
-    
+
     set sigma "&Sigma;"
     
     # The complete set of dimensions - used as the key for
@@ -254,7 +254,8 @@ ad_proc im_reporting_cubes_finance {
     if {"" != $project_status_id && 0 != $project_status_id} {
         lappend criteria "mainp.project_status_id in ([join [im_sub_categories $project_status_id] ", "])"
     }  
-  set where_clause [join $criteria " and\n\t\t\t"]
+
+    set where_clause [join $criteria " and\n\t\t\t"]
     if { ![empty_string_p $where_clause] } {
         set where_clause " and $where_clause"
     }
@@ -349,6 +350,7 @@ ad_proc im_reporting_cubes_finance {
   	[join $dimension_vars ",\n\t"]
     "
 
+
     # ------------------------------------------------------------
     # Create upper date dimension
     
@@ -382,7 +384,6 @@ ad_proc im_reporting_cubes_finance {
         return ""
     }
 
-    # ad_return_complaint 1 [join $left_vars ", "]    
     # Scale is a list of lists. Example: {{2006 01} {2006 02} ...}
     # The last element is the grand total.
     set left_scale [db_list_of_lists left_scale "
