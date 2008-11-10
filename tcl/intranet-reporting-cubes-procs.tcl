@@ -229,6 +229,7 @@ ad_proc im_reporting_cubes_finance {
     # ------------------------------------------------------------
     # Defaults
 
+
     set sigma "&Sigma;"
     
     # The complete set of dimensions - used as the key for
@@ -296,6 +297,7 @@ ad_proc im_reporting_cubes_finance {
     set middle_sql "
   	select
   		c.*,
+		im_cost_get_final_customer_name(c.cost_id) as final_customer_name,
   		im_category_from_id(c.cost_type_id) as cost_type,
   		im_category_from_id(c.cost_status_id) as cost_status,
   		to_char(c.effective_date, 'YYYY') as year,
@@ -349,7 +351,6 @@ ad_proc im_reporting_cubes_finance {
     group by
   	[join $dimension_vars ",\n\t"]
     "
-
 
     # ------------------------------------------------------------
     # Create upper date dimension
@@ -908,16 +909,6 @@ ad_proc im_reporting_cubes_survsimp {
      	hash_array [array get hash] \
     ]
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
