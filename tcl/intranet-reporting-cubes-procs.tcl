@@ -49,7 +49,7 @@ ad_proc im_reporting_cubes_cube {
     { -related_object_id 0 }
     { -related_context_id 0 }
     { -cache_days 1 }
-    { -no_cache_p 0 }
+    { -no_cache_p 1 }
 } {
     Returns a DW cube as a list containing:
     - An array with the cube data
@@ -924,7 +924,7 @@ ad_proc im_reporting_cubes_display {
     -top_scale
     -left_scale
 } {
-    Returns a formatted piece of HTML displying a slice of a cube.
+    Returns a formatted piece of HTML displaying a slice of a cube.
 } {
     # ------------------------------------------------------------
     # Extract parameters
@@ -1011,7 +1011,7 @@ ad_proc im_reporting_cubes_display {
     
     set header ""
     for {set row 0} {$row < $top_scale_pretty_rows} { incr row } {
-    
+	 
 	append header "<tr class=rowtitle>\n"
 	append header "<td colspan=$left_scale_pretty_size></td>\n"
     
@@ -1109,3 +1109,285 @@ ad_proc im_reporting_cubes_display {
 	</table>
     "
 }
+
+
+# ----------------------------------------------------------------------
+# Get Cube data finance
+# This version accepts new parameter to determine output format
+# 
+# Please note: 
+# This routine is subject to further review, debugging and clean-up
+# before it can replace im_reporting_cubes_display 
+# klaus.hofeditz@project-open.com
+# ----------------------------------------------------------------------
+
+ad_proc im_reporting_cubes_display_custom {
+    -hash_array
+    -top_vars
+    -left_vars
+    -top_scale
+    -left_scale
+    -output_format
+} {
+    Returns slice of a cube based on output_format HTML/CSV code
+} {
+    # ------------------------------------------------------------
+    # Extract parameters
+    array set hash $hash_array
+    set dimension_vars [concat $top_vars $left_vars]
+
+    # ------------------------------------------------------------
+    # Defaults
+
+    set rowclass(0) "roweven"
+    set rowclass(1) "rowodd"
+
+    set gray "gray"
+    set sigma "&Sigma;"
+
+    set company_url "/intranet/companies/view?company_id="
+    set project_url "/intranet/projects/view?project_id="
+    set invoice_url "/intranet-invoices/view?invoice_id="
+    set user_url "/intranet/users/view?user_id="
+    set this_url [export_vars -base "/intranet-reporting/finance-cube" {start_date end_date} ]
+
+    # ------------------------------------------------------------
+    # Create pretty scales
+
+    # Insert subtotal columns whenever a scale changes
+    set top_scale_pretty [list]
+    set last_item [lindex $top_scale 0]
+    foreach scale_pretty_item $top_scale {
+        for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
+            set last_var [lindex $last_item $i]
+            set cur_var [lindex $scale_pretty_item $i]
+            if {$last_var != $cur_var} {
+                set item [lrange $last_item 0 $i]
+		while {[llength $item] < [llength $last_item]} { 
+		    switch $output_format {
+			html - printer {
+			    lappend item $sigma 
+			}
+			csv {
+			    lappend item "SUM" 
+			}
+		    }
+		}
+                lappend top_scale_pretty $item
+            }
+        }
+        lappend top_scale_pretty $scale_pretty_item
+        set last_item $scale_pretty_item
+    }
+
+    # No top dimension at all gives an error...
+    if {![llength $left_vars]} {
+        ns_write "
+        <p>&nbsp;<p>&nbsp;<p>&nbsp;<p><blockquote>
+        [lang::message::lookup "" intranet-reporting.No_left_dimension "No 'Left' Dimension Specified"]:<p>
+        [lang::message::lookup "" intranet-reporting.No_left_dimension_message "
+        You need to specify atleast one variable for the left dimension.
+        "]
+        </blockquote><p>&nbsp;<p>&nbsp;<p>&nbsp;
+    "
+        return ""
+    }
+
+    # Add subtotals whenever a "main" (not the most detailed) scale_pretty changes
+    set left_scale_pretty [list]
+    set last_item [lindex $left_scale 0]
+    foreach scale_pretty_item $left_scale {
+
+        for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
+            set last_var [lindex $last_item $i]
+            set cur_var [lindex $scale_pretty_item $i]
+            if {$last_var != $cur_var} {
+                set item [lrange $last_item 0 $i]
+                while {[llength $item] < [llength $last_item]} { lappend item "SUM" }
+                lappend left_scale_pretty $item
+            }
+        }
+        lappend left_scale_pretty $scale_pretty_item
+        set last_item $scale_pretty_item
+    }
+    
+    # ------------------------------------------------------------
+    # Display the Table Header
+
+    # Determine how many date rows (year, month, day, ...) we've got
+    set first_cell [lindex $top_scale_pretty 0]
+    set top_scale_pretty_rows [llength $first_cell]
+    set left_scale_pretty_size [llength [lindex $left_scale_pretty 0]]
+
+    set header ""
+    for {set row 0} {$row < $top_scale_pretty_rows} { incr row } {
+	switch $output_format {
+	    html - printer { 
+	        append header "<tr class=rowtitle>\n"
+	        append header "<td colspan=$left_scale_pretty_size></td>\n"
+	    }
+	    csv { 
+		for {set f 0} {$f < $left_scale_pretty_size} { incr f } {
+		    append header ","
+		}
+	    }
+	}
+        for {set col 0} {$col <= [expr [llength $top_scale_pretty]-1]} { incr col } {
+
+            set scale_pretty_entry [lindex $top_scale_pretty $col]
+            set scale_pretty_item [lindex $scale_pretty_entry $row]
+
+            # Check if the previous item was of the same content
+            set prev_scale_pretty_entry [lindex $top_scale_pretty [expr $col-1]]
+            set prev_scale_pretty_item [lindex $prev_scale_pretty_entry $row]
+
+            # Check for the "sigma" sign. We want to display the sigma
+            # every time (disable the colspan logic)
+            if {$scale_pretty_item == $sigma || $scale_pretty_item == "SUM"} {
+		switch $output_format {
+			html - printer {
+				append header "\t<td class=rowtitle>$scale_pretty_item</td>\n"
+			}
+			csv {
+                                append header "SUM,"
+			}
+        	}
+		continue
+            }
+
+            # Prev and current are same => just skip.
+            # The cell was already covered by the previous entry via "colspan"
+            if {$prev_scale_pretty_item == $scale_pretty_item} { continue }
+
+            # This is the first entry of a new content.
+            # Look forward to check if we can issue a "colspan" command
+            set colspan 1
+            set next_col [expr $col+1]
+            while {$scale_pretty_item == [lindex [lindex $top_scale_pretty $next_col] $row]} {
+                incr next_col
+                incr colspan
+            }
+            switch $output_format {
+                        html - printer {
+				append header "\t<td class=rowtitle colspan=$colspan>$scale_pretty_item</td>\n"
+                        }
+                        csv {
+			    append header "$scale_pretty_item,"
+				for {set g 0} {$g < $colspan-1} { incr g } {
+				    append header ","
+				}
+                        }
+            }
+        }
+	switch $output_format {
+		html - printer {
+		        append header "</tr>\n"
+		}
+		csv {
+		        append header "\n"
+		}
+	}
+    }
+
+
+    # ------------------------------------------------------------
+    # Display the table body
+
+    set ctr 0
+    set body ""
+    foreach left_entry $left_scale_pretty {
+
+        set class $rowclass([expr $ctr % 2])
+        incr ctr
+
+        # Start the row and show the left_scale_pretty values at the left
+
+        switch $output_format {
+                html - printer {
+			append body "<tr class=$class>\n"
+			foreach val $left_entry { append body "<td>$val</td>\n" }
+                }
+                csv {
+			foreach val $left_entry { append body "$val," }
+                }
+        }
+
+        # Write the left_scale_pretty values to their corresponding local
+        # variables so that we can access them easily when calculating
+        # the "key".
+        for {set i 0} {$i < [llength $left_vars]} {incr i} {
+            set var_name [lindex $left_vars $i]
+            set var_value [lindex $left_entry $i]
+            set $var_name $var_value
+        }
+
+        foreach top_entry $top_scale_pretty {
+
+            # Write the top_scale_pretty values to their corresponding local
+            # variables so that we can access them easily for $key
+            for {set i 0} {$i < [llength $top_vars]} {incr i} {
+                set var_name [lindex $top_vars $i]
+                set var_value [lindex $top_entry $i]
+                set $var_name $var_value
+            }
+
+            # Calculate the key for this permutation
+            # something like "$year-$month-$customer_id"
+            set key_expr_list [list]
+            foreach var_name $dimension_vars {
+                set var_value [eval set a "\$$var_name"]
+		if {$sigma != $var_value && "SUM" != $var_value} { lappend key_expr_list $var_name }
+            }
+            set key_expr "\$[join $key_expr_list "-\$"]"
+            set key [eval "set a \"$key_expr\""]
+
+	    switch $output_format {
+		html - printer {
+		    set val "&nbsp;"
+
+		}
+		csv {
+		    set val ""
+		}
+	    }
+
+            if {[info exists hash($key)]} { set val $hash($key) }
+
+	    switch $output_format {
+                html - printer {
+	            append body "<td>$val</td>\n"
+                }
+                csv {
+	            append body "$val,"
+                }
+            }
+        }
+	switch $output_format {
+                html - printer {
+			append body "</tr>\n"
+                }
+                csv {
+                        append body "\n"
+                }
+        }
+    }
+
+        switch $output_format {
+                html - printer {
+			set output_final "        
+				<table border=0 cellspacing=1 cellpadding=1>
+			        $header
+			        $body
+			        </table>
+    			"
+                }
+                csv {
+		    append header $body
+		    set output_final $header 
+                }
+        }
+	return $output_final
+}
+
+
+
