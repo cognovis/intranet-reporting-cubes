@@ -49,7 +49,7 @@ ad_proc im_reporting_cubes_cube {
     { -related_object_id 0 }
     { -related_context_id 0 }
     { -cache_days 1 }
-    { -no_cache_p 1 }
+    { -no_cache_p 0 }
 } {
     Returns a DW cube as a list containing:
     - An array with the cube data
