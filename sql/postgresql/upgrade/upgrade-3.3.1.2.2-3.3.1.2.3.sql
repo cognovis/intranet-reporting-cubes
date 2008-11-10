@@ -5,7 +5,7 @@ SELECT acs_log__debug('/packages/intranet-reporting-cubes/sql/postgresql/upgrade
 
 
 -- ------------------------------------------------
--- Return the final customer for a cost item
+-- Return the final customer id for a cost item
 --  
 
 create or replace function im_cost_get_final_customer(integer)
@@ -24,6 +24,9 @@ BEGIN
         return v_company_id;
 END;' language 'plpgsql';
 
+-- ------------------------------------------------
+-- Return the final customer name for a cost item
+--
 
 
 create or replace function im_cost_get_final_customer_name(integer)
