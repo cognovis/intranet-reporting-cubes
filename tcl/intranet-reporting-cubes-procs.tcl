@@ -1196,21 +1196,22 @@ ad_proc im_reporting_cubes_display_custom {
     # Add subtotals whenever a "main" (not the most detailed) scale_pretty changes
     set left_scale_pretty [list]
     set last_item [lindex $left_scale 0]
+
     foreach scale_pretty_item $left_scale {
 
         for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
             set last_var [lindex $last_item $i]
             set cur_var [lindex $scale_pretty_item $i]
-            if {$last_var != $cur_var} {
-                set item [lrange $last_item 0 $i]
-                while {[llength $item] < [llength $last_item]} { lappend item "SUM" }
-                lappend left_scale_pretty $item
-            }
+#            if {$last_var != $cur_var} {
+#                set item [lrange $last_item 0 $i]
+#                while {[llength $item] < [llength $last_item]} { lappend item "SUM" }
+#                lappend left_scale_pretty $item
+#            }
         }
         lappend left_scale_pretty $scale_pretty_item
         set last_item $scale_pretty_item
     }
-    
+
     # ------------------------------------------------------------
     # Display the Table Header
 
@@ -1228,7 +1229,7 @@ ad_proc im_reporting_cubes_display_custom {
 	    }
 	    csv { 
 		for {set f 0} {$f < $left_scale_pretty_size} { incr f } {
-		    append header ","
+		    append header ";"
 		}
 	    }
 	}
@@ -1244,15 +1245,15 @@ ad_proc im_reporting_cubes_display_custom {
             # Check for the "sigma" sign. We want to display the sigma
             # every time (disable the colspan logic)
             if {$scale_pretty_item == $sigma || $scale_pretty_item == "SUM"} {
-		switch $output_format {
-			html - printer {
-				append header "\t<td class=rowtitle>$scale_pretty_item</td>\n"
-			}
+ 		switch $output_format {
+ 			html - printer {
+ 				append header "\t<td class=rowtitle>$scale_pretty_item</td>\n"
+ 			}
 			csv {
-                                append header "SUM,"
-			}
-        	}
-		continue
+			    append header "SUM;"
+ 			}
+         	}
+ 		continue
             }
 
             # Prev and current are same => just skip.
@@ -1274,7 +1275,7 @@ ad_proc im_reporting_cubes_display_custom {
                         csv {
 			    append header "$scale_pretty_item,"
 				for {set g 0} {$g < $colspan-1} { incr g } {
-				    append header ","
+				    append header ";"
 				}
                         }
             }
@@ -1308,7 +1309,7 @@ ad_proc im_reporting_cubes_display_custom {
 			foreach val $left_entry { append body "<td>$val</td>\n" }
                 }
                 csv {
-			foreach val $left_entry { append body "$val," }
+		    foreach val $left_entry { append body "$val;" }
                 }
         }
 
@@ -1358,7 +1359,7 @@ ad_proc im_reporting_cubes_display_custom {
 	            append body "<td>$val</td>\n"
                 }
                 csv {
-	            append body "$val,"
+	            append body "$val;"
                 }
             }
         }
