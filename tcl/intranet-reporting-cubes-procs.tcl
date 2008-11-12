@@ -49,7 +49,7 @@ ad_proc im_reporting_cubes_cube {
     { -related_object_id 0 }
     { -related_context_id 0 }
     { -cache_days 1 }
-    { -no_cache_p 0 }
+    { -no_cache_p 1 }
 } {
     Returns a DW cube as a list containing:
     - An array with the cube data
@@ -1273,7 +1273,7 @@ ad_proc im_reporting_cubes_display_custom {
 				append header "\t<td class=rowtitle colspan=$colspan>$scale_pretty_item</td>\n"
                         }
                         csv {
-			    append header "$scale_pretty_item,"
+			    append header "$scale_pretty_item;"
 				for {set g 0} {$g < $colspan-1} { incr g } {
 				    append header ";"
 				}
