@@ -1118,10 +1118,11 @@ ad_proc im_reporting_cubes_display {
 # Please note: 
 # This routine is subject to further review, debugging and clean-up
 # before it can replace im_reporting_cubes_display 
+# Procedure is used in intranet-cust-reinisch
 # klaus.hofeditz@project-open.com
 # ----------------------------------------------------------------------
 
-ad_proc im_reporting_cubes_display_custom {
+ad_proc im_reporting_cubes_display_toreview {
     -hash_array
     -top_vars
     -left_vars
