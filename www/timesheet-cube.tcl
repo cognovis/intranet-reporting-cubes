@@ -60,6 +60,7 @@ if {[llength $dimension_vars] != [llength $unique_dimension_vars]} {
 
 set space ""
 if { "html" == $output_format  } { set space "&nbsp;" }
+set separator ";"
 
 # ------------------------------------------------------------
 # Security
@@ -635,7 +636,7 @@ for {set row 0} {$row < $top_scale_rows } { incr row } {
     	append html_header "<td colspan=$left_scale_size></td>\n"
     } else {
 	for {set n 0} {$n < $left_scale_size } { incr n } {
-	    append csv_header ","
+	    append csv_header "$separator"
 	}
     }
 
@@ -654,7 +655,7 @@ for {set row 0} {$row < $top_scale_rows } { incr row } {
 	   if { "html" == $output_format  } {
 	      append html_header "\t<td class=rowtitle>$scale_item</td>\n"
 	   } else {
-	      append csv_header "$scale_item,"
+	       append csv_header "${scale_item}${separator}"
 	   }
 	   continue 	   
 	}
@@ -674,7 +675,7 @@ for {set row 0} {$row < $top_scale_rows } { incr row } {
 	if { "html" == $output_format } {
 	   append html_header "\t<td class=rowtitle colspan=$colspan>$scale_item</td>\n"	    
 	} else {
-	   append csv_header "$scale_item,"	    
+	    append csv_header "${scale_item}${separator}"	    
 	}
     }
     if { "html" == $output_format } { 
@@ -740,7 +741,7 @@ foreach left_entry $left_scale {
         ns_write "<tr class=$class>\n"
     	foreach val $left_entry { ns_write "<td>$val</td>\n" }
     } else {
-    	foreach val $left_entry { ns_write "$val," }
+    	foreach val $left_entry { ns_write "${val}${separator}" }
     }
 
     # Write the left_scale values to their corresponding local 
@@ -777,7 +778,7 @@ foreach left_entry $left_scale {
 	if { "html" == $output_format } {
 	   ns_write "<td align='right'>$val</td>\n"
 	} else {
-	   ns_write "$val,"
+	    ns_write "${val}${separator}"
 	}
     }
     if { "html" == $output_format } {
