@@ -17,9 +17,11 @@ ad_page_contract {
     { left_scale1 "main_project_type" }
     { left_scale2 "main_project_name" }
     { left_scale3 "" }
+    { left_scale4 "" }
     { customer_type_id:integer 0 }
     { project_type_id:integer 0 }
     { customer_id:integer 0 }
+    { output_format "html" }
 }
 
 # ------------------------------------------------------------
@@ -30,6 +32,7 @@ set left_vars [list]
 if {"" != $left_scale1} { lappend left_vars $left_scale1 }
 if {"" != $left_scale2} { lappend left_vars $left_scale2 }
 if {"" != $left_scale3} { lappend left_vars $left_scale3 }
+if {"" != $left_scale4} { lappend left_vars $left_scale4 }
 
 # Top Dimension
 set top_vars [ns_urldecode $top_vars]
@@ -55,6 +58,8 @@ if {[llength $dimension_vars] != [llength $unique_dimension_vars]} {
     ad_return_complaint 1 $err_mess
 }
 
+set space ""
+if { "html" == $output_format  } { set space "&nbsp;" }
 
 # ------------------------------------------------------------
 # Security
@@ -126,7 +131,12 @@ set rowclass(0) "roweven"
 set rowclass(1) "rowodd"
 
 set gray "gray"
-set sigma "&Sigma;"
+if { "html" == $output_format } {
+    set sigma "&Sigma;"   
+} else {
+    set sigma ""
+}
+
 set days_in_past 31
 
 set date_format [im_l10n_sql_date_format]
@@ -192,6 +202,9 @@ set left_scale_options {
 	"department" "User Department"
 	"employee_supervisor" "User Supervisor"
 	"customer_name" "Customer Name"
+	"project_path_shortend" "Project Path (shortend)"
+	"project_path_full" "Project Path (full)"
+
 }
 
 
@@ -305,6 +318,9 @@ foreach var $dimension_vars {
 	customer_type { lappend derefs "im_category_from_id(h.company_type_id) as customer_type" }
 	customer_status { lappend derefs "im_category_from_id(h.company_status_id) as customer_status" }
 
+	project_path_shortend { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,true,true)) as project_path_shortend" }
+	project_path_full { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,false,false)) as project_path_full" }
+	
     }
 }
 
@@ -316,98 +332,112 @@ if {[llength $derefs] == 0} { lappend derefs "1 as dummy"}
 #
 
 # Write out HTTP header, considering CSV/MS-Excel formatting
-im_report_write_http_headers -output_format "html"
+im_report_write_http_headers -output_format $output_format -report_name "timesheet-cube"
 
-ns_write "
-[im_header]
-[im_navbar]
-<table cellspacing=0 cellpadding=0 border=0 class=''>
-<form>
-[export_form_vars project_id]
-<tr valign=top><td>
-	<table border=0 cellspacing=1 cellpadding=1>
-	<tr>
-	  <td class=form-label>Start Date</td>
-	  <td class=form-widget colspan=3>
-	    <input type=textfield name=start_date value=$start_date>
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>End Date</td>
-	  <td class=form-widget colspan=3>
-	    <input type=textfield name=end_date value=$end_date>
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Customer Type</td>
-	  <td class=form-widget colspan=3>
-	    [im_category_select -include_empty_p 1 "Intranet Company Type" customer_type_id $customer_type_id]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Customer</td>
-	  <td class=form-widget colspan=3>
-	    [im_company_select customer_id $customer_id]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-widget colspan=2 align=center>Left-Dimension</td>
-	  <td class=form-widget colspan=2 align=center>Top-Dimension</td>
-	</tr>
-	<tr>
-	  <td class=form-label>Left 1</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 left_scale1 $left_scale_options $left_scale1]
-	  </td>
+switch $output_format {
+    html {
+	ns_write "
+	[im_header]
+	[im_navbar]
+	<form>
+		[export_form_vars project_id]
+		<table cellspacing=0 cellpadding=0 border=0 class=''>
+		       <tr valign='top'><td>
+		       	   <table border=0 cellspacing=1 cellpadding=1>
+			   	<tr>
+				  	  <td class=form-label>Start Date</td>
+					  <td class=form-widget colspan=3>
+					  <input type=textfield name=start_date value=$start_date>
+					   </td>
+				</tr>
+				<tr>
+				  	  <td class=form-label>End Date</td>
+					  <td class=form-widget colspan=3>
+					      <input type=textfield name=end_date value=$end_date>
+					  </td>
+			        </tr>
+				<tr>
+				  	  <td class=form-label>Customer Type</td>
+					  <td class=form-widget colspan=3>
+					      [im_category_select -include_empty_p 1 "Intranet Company Type" customer_type_id $customer_type_id]
+					  </td>
+				</tr>
+				<tr>
+				  	  <td class=form-label>Customer</td>
+					  <td class=form-widget colspan=3>
+					      [im_company_select customer_id $customer_id]
+					  </td>
+			        </tr>
+				<tr>
+				  	  <td class=form-widget colspan=2 align=center>Left-Dimension</td>
+					  <td class=form-widget colspan=2 align=center>Top-Dimension</td>
+				</tr>
+				<tr>
+				 	  <td class=form-label>Left 1</td>
+					  <td class=form-widget>
+					      [im_select -translate_p 0 left_scale1 $left_scale_options $left_scale1]
+					  </td>
+					  <td class=form-label>Date Dimension</td>
+					  <td class=form-widget>
+					      [im_select -translate_p 0 top_vars $top_vars_options $top_vars]
+					  </td>
+				</tr>
+				<tr>
+					  <td class=form-label>Left 2</td>
+					  <td class=form-widget>
+					  	    [im_select -translate_p 0 left_scale2 $left_scale_options $left_scale2]
+					  </td>
+					  <td class=form-label>Top 1</td>
+					  <td class=form-widget>
+					      [im_select -translate_p 0 top_scale1 $left_scale_options $top_scale1]
+					  </td>
+				</tr>
+				<tr>
+				  	  <td class=form-label>Left 3</td>
+					  <td class=form-widget>
+					     [im_select -translate_p 0 left_scale3 $left_scale_options $left_scale3]
+					   </td>
+					  <td class=form-label>Top 2</td>
+					  <td class=form-widget>
+					  	    [im_select -translate_p 0 top_scale2 $left_scale_options $top_scale2]
+					  </td>
+				</tr>
+				<tr>
+				          <td class=form-label>Left 4</td>
+				          <td class=form-widget>
+					    	      [im_select -translate_p 0 left_scale4 $left_scale_options $left_scale4]
+          				  </td>
+					  <td colspan='2'></td>
+				</tr>
+				<tr>
+				          <td colspan='4'>&nbsp;</td>
+				</tr>
+				<tr>
+				          <td class=form-label> [lang::message::lookup "" intranet-reporting.Format "Format"]</td>
+					  <td class=form-widget>
+					        [im_report_output_format_select output_format "" $output_format]
+				          </td>
+					  <td colspan='2'></td>
+				</tr>
+				<tr>
+					  <td class=form-label></td>
+					  <td class=form-widget colspan=3><input type=submit value=Submit></td>
+				</tr>
+			</table>
+			</td>
 
-	  <td class=form-label>Date Dimension</td>
-	    <td class=form-widget>
-	      [im_select -translate_p 0 top_vars $top_vars_options $top_vars]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Left 2</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 left_scale2 $left_scale_options $left_scale2]
-	  </td>
-
-	  <td class=form-label>Top 1</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 top_scale1 $left_scale_options $top_scale1]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Left 3</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 left_scale3 $left_scale_options $left_scale3]
-	  </td>
-	  <td class=form-label>Top 2</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 top_scale2 $left_scale_options $top_scale2]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label></td>
-	  <td class=form-widget colspan=3><input type=submit value=Submit></td>
-	</tr>
+			<td>
+				<table cellspacing=2 cellpadding=2 width=90%>
+					<tr><td>$help_text</td></tr>
+				</table>
+			</td>
+		</tr>
 	</table>
-</td>
-<td>
-	<table>
-	</table>
-</td>
-<td>
-	<table cellspacing=2 cellpadding=2 width=90%>
-	<tr><td>$help_text</td></tr>
-	</table>
-</td>
-</tr>
-</form>
-</table>
-<table border=0 cellspacing=6 cellpadding=2>
-"
-
-
+	</form>
+	<table border=0 cellspacing=6 cellpadding=2>
+	"
+    }
+}
 
 # ------------------------------------------------------------
 # Conditional SQL Where-Clause
@@ -509,15 +539,16 @@ set top_scale_plain [db_list_of_lists top_scale "
 	from		($middle_sql) c
 	order by	[join $top_vars ", "]
 "]
-lappend top_scale_plain [list $sigma $sigma $sigma $sigma $sigma $sigma]
 
+if { "html" == $output_format } {
+    lappend top_scale_plain [list $sigma $sigma $sigma $sigma $sigma $sigma]    
+}
 
 # Insert subtotal columns whenever a scale changes
 set top_scale [list]
 set last_item [lindex $top_scale_plain 0]
 foreach scale_item $top_scale_plain {
     for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
-
 	set last_var [lindex $last_item $i]
 	set cur_var [lindex $scale_item $i]
 	if {$last_var != $cur_var} {
@@ -537,12 +568,12 @@ foreach scale_item $top_scale_plain {
 # No left dimension at all gives an error...
 if {![llength $left_vars]} {
     ns_write "
-	<p>&nbsp;<p>&nbsp;<p>&nbsp;<p><blockquote>
+	<p>$space<p>$space<p>$space<p><blockquote>
 	[lang::message::lookup "" intranet-reporting.No_left_dimension "No 'Left' Dimension Specified"]:<p>
 	[lang::message::lookup "" intranet-reporting.No_left_dimension_message "
 		You need to specify atleast one variable for the left dimension.
 	"]
-	</blockquote><p>&nbsp;<p>&nbsp;<p>&nbsp;
+	</blockquote><p>$space<p>$space<p>$space
     "
     ns_write "</table>\n[im_footer]\n"
     return
@@ -555,30 +586,34 @@ set left_scale_plain [db_list_of_lists left_scale "
 	from		($middle_sql) c
 	order by	[join $left_vars ", "]
 "]
-set last_sigma [list]
-foreach t [lindex $left_scale_plain 0] {
-    lappend last_sigma $sigma
-}
-lappend left_scale_plain $last_sigma
 
+# Add totals for browser output only 
+if { "html" == $output_format } {
+    set last_sigma [list]
+    foreach t [lindex $left_scale_plain 0] {
+	lappend last_sigma $sigma
+    }
+    lappend left_scale_plain $last_sigma
+}
 
 # Add subtotals whenever a "main" (not the most detailed) scale changes
 set left_scale [list]
 set last_item [lindex $left_scale_plain 0]
+
 foreach scale_item $left_scale_plain {
-
-    for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
-	set last_var [lindex $last_item $i]
-	set cur_var [lindex $scale_item $i]
-	if {$last_var != $cur_var} {
-
-	    set item [lrange $last_item 0 $i]
-	    while {[llength $item] < [llength $last_item]} { lappend item $sigma }
-	    lappend left_scale $item
+	for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
+	    set last_var [lindex $last_item $i]
+	    set cur_var [lindex $scale_item $i]
+	    if {$last_var != $cur_var} {
+		if { "html" == $output_format } {		
+		    set item [lrange $last_item 0 $i]
+		    while {[llength $item] < [llength $last_item]} { lappend item $sigma }
+		    lappend left_scale $item
+		}
+	    }
 	}
-    }
-    lappend left_scale $scale_item
-    set last_item $scale_item
+	lappend left_scale $scale_item
+	set last_item $scale_item
 }
 
 
@@ -590,11 +625,19 @@ set first_cell [lindex $top_scale 0]
 set top_scale_rows [llength $first_cell]
 set left_scale_size [llength [lindex $left_scale 0]]
 
-set header ""
-for {set row 0} {$row < $top_scale_rows} { incr row } {
+set html_header ""
+set csv_header ""
 
-    append header "<tr class=rowtitle>\n"
-    append header "<td colspan=$left_scale_size></td>\n"
+for {set row 0} {$row < $top_scale_rows } { incr row } {
+
+    if { "html" == $output_format  } {
+        append html_header "<tr class=rowtitle>\n"
+    	append html_header "<td colspan=$left_scale_size></td>\n"
+    } else {
+	for {set n 0} {$n < $left_scale_size } { incr n } {
+	    append csv_header ","
+	}
+    }
 
     for {set col 0} {$col <= [expr [llength $top_scale]-1]} { incr col } {
 
@@ -608,8 +651,12 @@ for {set row 0} {$row < $top_scale_rows} { incr row } {
 	# Check for the "sigma" sign. We want to display the sigma
 	# every time (disable the colspan logic)
 	if {$scale_item == $sigma} { 
-	    append header "\t<td class=rowtitle>$scale_item</td>\n"
-	    continue
+	   if { "html" == $output_format  } {
+	      append html_header "\t<td class=rowtitle>$scale_item</td>\n"
+	   } else {
+	      append csv_header "$scale_item,"
+	   }
+	   continue 	   
 	}
 
 	# Prev and current are same => just skip.
@@ -624,12 +671,24 @@ for {set row 0} {$row < $top_scale_rows} { incr row } {
 	    incr next_col
 	    incr colspan
 	}
-	append header "\t<td class=rowtitle colspan=$colspan>$scale_item</td>\n"	    
-
+	if { "html" == $output_format } {
+	   append html_header "\t<td class=rowtitle colspan=$colspan>$scale_item</td>\n"	    
+	} else {
+	   append csv_header "$scale_item,"	    
+	}
     }
-    append header "</tr>\n"
+    if { "html" == $output_format } { 
+	append html_header "</tr>\n" 
+    } else {
+	append csv_header "\n"
+    }
 }
-ns_write $header
+
+if { "html" == $output_format  } {
+   ns_write $html_header
+} else {
+   ns_write $csv_header
+}
 
 
 # ------------------------------------------------------------
@@ -648,23 +707,24 @@ db_foreach query $outer_sql {
     # Permutations with less elements correspond to subtotals
     # of the values along the missing dimension. Clear?
     #
+
     foreach perm $perms {
+	    # Calculate the key for this permutation
+	    # something like "$year-$month-$customer_id"
+	    set key_expr "\$[join $perm "-\$"]"
+	    set key [eval "set a \"$key_expr\""]
 
-	# Calculate the key for this permutation
-	# something like "$year-$month-$customer_id"
-	set key_expr "\$[join $perm "-\$"]"
-	set key [eval "set a \"$key_expr\""]
-
-	# Sum up the values for the matrix cells
-	set sum 0
-	if {[info exists hash($key)]} { set sum $hash($key) }
+	    # Sum up the values for the matrix cells
+	    set sum 0
 	
-	if {"" == $hours} { set hours 0 }
-	set sum [expr $sum + $hours]
-	set hash($key) $sum
+	    if {[info exists hash($key)]} { set sum $hash($key) }
+	    
+	    if {"" == $hours} { set hours 0 }
+	    set sum [expr $sum + $hours]
+	    set hash($key) $sum	    
+
     }
 }
-
 
 # ------------------------------------------------------------
 # Display the table body
@@ -676,8 +736,12 @@ foreach left_entry $left_scale {
     incr ctr
 
     # Start the row and show the left_scale values at the left
-    ns_write "<tr class=$class>\n"
-    foreach val $left_entry { ns_write "<td>$val</td>\n" }
+    if { "html" == $output_format } {
+        ns_write "<tr class=$class>\n"
+    	foreach val $left_entry { ns_write "<td>$val</td>\n" }
+    } else {
+    	foreach val $left_entry { ns_write "$val," }
+    }
 
     # Write the left_scale values to their corresponding local 
     # variables so that we can access them easily when calculating
@@ -708,19 +772,25 @@ foreach left_entry $left_scale {
 	set key_expr "\$[join $key_expr_list "-\$"]"
 	set key [eval "set a \"$key_expr\""]
 
-	set val "&nbsp;"
+	set val "$space"
 	if {[info exists hash($key)]} { set val $hash($key) }
-
-	ns_write "<td align='right'>$val</td>\n"
-
+	if { "html" == $output_format } {
+	   ns_write "<td align='right'>$val</td>\n"
+	} else {
+	   ns_write "$val,"
+	}
     }
-    ns_write "</tr>\n"
+    if { "html" == $output_format } {
+       ns_write "</tr>\n"
+    } else {
+       ns_write "\n"
+    }
 }
 
 
 # ------------------------------------------------------------
 # Finish up the table
 
-ns_write "</table>\n[im_footer]\n"
-
-
+if { "html" == $output_format } {
+   ns_write "</table>\n[im_footer]\n"
+}
