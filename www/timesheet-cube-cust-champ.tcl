@@ -188,7 +188,7 @@ set top_vars_options {
 	"year month_of_year" "Year and Month" 
 	"year quarter_of_year month_of_year" "Year, Quarter and Month" 
         "year quarter_of_year month_of_year day_of_month" "Year, Quarter, Month and Day" 
-	"day_of_month" "Day" 
+	"day_of_month" "Days - Month of Start Date (ignores End Date)" 
 	"year week_of_year" "Year and Week"
 	"month_of_year year" "Month and Year (compare years)"
 }
