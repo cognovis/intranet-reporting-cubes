@@ -827,10 +827,15 @@ foreach left_entry $left_scale {
 
 	set val "$space"
 	if {[info exists hash($key)]} { set val $hash($key) }
+
+	if [catch {
+	    set val [format "%.2f" [expr {double(round(100*$val))/100}]]
+	} errmsg] {}
+
 	if { "html" == $output_format } { 
-	    ns_write "<td align='right'>[format "%.2f" [expr {double(round(100*$val))/100}]]</td>\n" 
+	    ns_write "<td align='right'>$val</td>\n" 
 	} else { 
-	    ns_write "[format "%.2f" [expr {double(round(100*$val))/100}]]${separator}" 
+	    ns_write "${val}${separator}" 
 	}
     }
  
