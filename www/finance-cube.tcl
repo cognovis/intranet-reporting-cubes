@@ -363,8 +363,6 @@ set project_dynfield_sql "
 		and aa.object_type in ('im_project')
 		and aa.attribute_name not like 'default%'
 " 
-
-set derefs [list]
 db_foreach project_dynfield_attributes $project_dynfield_sql {
 
     lappend left_scale_options "${attribute_name}_deref"
@@ -387,7 +385,7 @@ db_foreach project_dynfield_attributes $project_dynfield_sql {
 if {[llength $derefs] == 0} { lappend derefs "1 as dummy"}
 
 
-# ad_return_complaint 1 $derefs
+
 
 
 for {set i 0} {$i < [llength $left_scale_options]} {incr i 2} {
