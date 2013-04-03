@@ -331,12 +331,12 @@ foreach var $dimension_vars {
 	customer_type { lappend derefs "im_category_from_id(h.company_type_id) as customer_type" }
 	customer_status { lappend derefs "im_category_from_id(h.company_status_id) as customer_status" }
 
-	project_path_shortend { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,true,true)) as project_path_shortend" }
-	project_path_full { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,false,false)) as project_path_full" }
+	project_path_shortend { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,true,true)) WHEN '' THEN 'Not found' END as project_path_shortend" }
+	project_path_full { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,false,false)) WHEN '' THEN 'Not found' END as project_path_full" }
 
 	sub_project_name_with_path { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,true,true))||sub_project_name as sub_project_name_with_path" }
 	
-	material_name { lappend derefs "im_material_name_from_id(h.material_id) as material_name" }
+	material_name { lappend derefs "im_material_name_from_id(task_material_id) as material_name" }
     }
 }
 
@@ -493,7 +493,8 @@ set inner_sql "
 			p.project_status_id as sub_project_status_id,
 			im_category_from_id(p.project_status_id) as sub_project_status,
 			p.project_type_id as sub_project_type_id,
-			im_category_from_id(p.project_type_id)  as sub_project_type,
+			im_category_from_id(p.project_type_id) as sub_project_type,
+			(select material_id from im_timesheet_tasks where task_id = h.project_id) as task_material_id,
 			c.*,
 			c.company_name as customer_name,
 			u.*,
@@ -508,7 +509,7 @@ set inner_sql "
 			im_projects p,
 			im_companies c,
 			cc_users u
-			LEFT OUTER JOIN im_employees e ON (u.user_id = e.employee_id)
+				LEFT OUTER JOIN im_employees e ON (u.user_id = e.employee_id)
 		where
 			h.project_id = p.project_id
 			and p.project_status_id not in ([im_project_status_deleted])
@@ -523,7 +524,8 @@ set inner_sql "
 # Aggregate additional/important fields to the fact table.
 set middle_sql "
 	select
-		h.*,
+		h.*
+                task_material_id,
 		p1.project_name as main_project_name,
 		p1.project_nr as main_project_nr,
 		p1.project_type_id as main_project_type_id,
