@@ -216,6 +216,8 @@ set left_scale_options {
 	        	
     	"sub_project_name_with_path" "Leaf Project/Task Name with path"
 
+        "material_name" "Material"
+
 }
 
 
@@ -333,6 +335,8 @@ foreach var $dimension_vars {
 	project_path_full { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,false,false)) as project_path_full" }
 
 	sub_project_name_with_path { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,true,true))||sub_project_name as sub_project_name_with_path" }
+	
+	material_name { lappend derefs "im_material_name_from_id(h.material_id) as material_name" }
     }
 }
 
