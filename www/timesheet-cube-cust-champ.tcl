@@ -111,14 +111,14 @@ if {"" != $end_date && ![regexp {^[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]$}
 set page_title [lang::message::lookup "" intranet-reporting.Timesheet_Cube "Timesheet Cube"]
 set context_bar [im_context_bar $page_title]
 set context ""
-set help_text "<strong>$page_title</strong><br>
+set help_text "
 
-This Pivot Table ('cube') is a kind of report that shows timesheet
+This Pivot Table ('cube') is a report that shows timesheet
 hours according to a number of 'dimensions' that you can specify.
 This cube effectively replaces a dozen of specific reports and allows
 you to 'drill down' into results.<p>
-
-Please take note about the display of the project hierarchy:
+<br>
+<strong>Additional information about dimensions: </strong>
 <ul>
 <li>'Main Project' is the topmost project.
 <li>'Sub Project/Task' is the project or task below the main 
@@ -127,8 +127,13 @@ Please take note about the display of the project hierarchy:
 <li>'Leaf Project/Task' refers to the sub project or task at
     any level of depth where the hours have been logged.
 </ul>
+<br>
+<strong>Please note the following CHAMP particularities: </strong>
+<ul>
+<li>'Material' is evaluated based on timesheet task attribute 'Material' as in opposite to the 'Material' that can be set when logging hours (Parameter: 'HourLoggingWithMaterialsP').</li>
+<li>'Material' is beeing determined at report execution. When changing the 'Material' attribute of a Timesheet Task, <strong>all</strong> hours logged against this task will be related to new 'Material'</li>
+</ul>
 "
-
 
 # ------------------------------------------------------------
 # Defaults
@@ -331,12 +336,12 @@ foreach var $dimension_vars {
 	customer_type { lappend derefs "im_category_from_id(h.company_type_id) as customer_type" }
 	customer_status { lappend derefs "im_category_from_id(h.company_status_id) as customer_status" }
 
-	project_path_shortend { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,true,true)) WHEN '' THEN 'Not found' END as project_path_shortend" }
-	project_path_full { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,false,false)) WHEN '' THEN 'Not found' END as project_path_full" }
+	project_path_shortend { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,true,true)) WHEN '' THEN '-- Not found --' END as project_path_shortend" }
+	project_path_full { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,false,false)) WHEN '' THEN '-- Not found --' END as project_path_full" }
 
 	sub_project_name_with_path { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,true,true))||sub_project_name as sub_project_name_with_path" }
 	
-	material_name { lappend derefs "im_material_name_from_id(task_material_id) as material_name" }
+	material_name { lappend derefs "CASE COALESCE(task_material_id,0) WHEN 0 THEN '-- Not found --' ELSE im_material_name_from_id(task_material_id) END as material_name" }
     }
 }
 
@@ -359,7 +364,7 @@ switch $output_format {
 		[export_form_vars project_id]
 		<table cellspacing=0 cellpadding=0 border=0 class=''>
 		       <tr valign='top'><td>
-		       	   <table border=0 cellspacing=1 cellpadding=1>
+		       	   <table border=0 cellspacing=2 cellpadding=2>
 			   	<tr>
 				  	  <td class=form-label>Start Date</td>
 					  <td class=form-widget colspan=3>
@@ -441,7 +446,9 @@ switch $output_format {
 				</tr>
 			</table>
 			</td>
-
+			<td>
+				&nbsp;&nbsp;&nbsp;
+			</td>
 			<td>
 				<table cellspacing=2 cellpadding=2 width=90%>
 					<tr><td>$help_text</td></tr>
