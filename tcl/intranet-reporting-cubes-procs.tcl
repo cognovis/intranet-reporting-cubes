@@ -335,6 +335,7 @@ ad_proc im_reporting_cubes_finance {
     # the relevant data from the fact table.
     set inner_sql "
   		select
+  			o.creation_user,
   			p.project_name as sub_project_name,
   			p.project_nr as sub_project_nr,
   			p.project_type_id as sub_project_type_id,
@@ -348,10 +349,11 @@ ad_proc im_reporting_cubes_finance {
   			  , 2) as amount_converted,
   			c.*
   		from
+			acs_objects o,
   			im_costs c
   			LEFT OUTER JOIN im_projects p ON (c.project_id = p.project_id)
   		where
-  			1=1
+  			o.object_id = c.cost_id
   			and c.cost_type_id in ([join $cost_type_id ", "])
   			and c.effective_date::date >= to_date(:start_date, 'YYYY-MM-DD')
   			and c.effective_date::date < to_date(:end_date, 'YYYY-MM-DD')
@@ -402,7 +404,10 @@ ad_proc im_reporting_cubes_finance {
   		prov.company_type_id as provider_type_id,
   		im_category_from_id(prov.company_type_id) as provider_type,
   		prov.company_status_id as provider_status_id,
-  		im_category_from_id(prov.company_status_id) as provider_status
+  		im_category_from_id(prov.company_status_id) as provider_status,
+
+		im_cost_center_name_from_id(e.department_id) as creation_user_cost_center_name,
+		im_name_from_user_id(c.creation_user) as creation_user_name
                 $derefs    
   	from
   		($inner_sql) c
@@ -410,6 +415,10 @@ ad_proc im_reporting_cubes_finance {
   		LEFT OUTER JOIN im_companies cust ON (c.customer_id = cust.company_id)
   		LEFT OUTER JOIN im_companies prov ON (c.provider_id = prov.company_id)
 		LEFT OUTER JOIN im_invoices inv ON (c.cost_id = inv.invoice_id)
+		LEFT OUTER JOIN users u ON (c.creation_user = u.user_id)
+		LEFT OUTER JOIN persons pe ON (c.creation_user = pe.person_id)
+		LEFT OUTER JOIN parties pa ON (c.creation_user = pa.party_id)
+		LEFT OUTER JOIN im_employees e ON (c.creation_user = e.employee_id)
   	where
   		1 = 1
   		$where_clause

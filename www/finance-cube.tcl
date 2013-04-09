@@ -267,15 +267,15 @@ set top_vars_options {
 
 set left_scale_options {
 	"" ""
-	"main_project_name" "Project Main Name"
-	"main_project_nr" "Project Main Nr"
-	"main_project_type" "Project Main Type"
-	"main_project_status" "Project Main Status"
+	"main_project_name" "Main Project Name"
+	"main_project_nr" "Main Project Nr"
+	"main_project_type" "Main Project Type"
+	"main_project_status" "Main Project Status"
 
-	"sub_project_name" "Project Sub Name"
-	"sub_project_nr" "Project Sub Nr"
-	"sub_project_type" "Project Sub Type"
-	"sub_project_status" "Project Sub Status"
+	"sub_project_name" "Leaf Project Name"
+	"sub_project_nr" "Leaf Project Nr"
+	"sub_project_type" "Leaf Project Type"
+	"sub_project_status" "Leaf Project Status"
 
 	"customer_name" "Customer Name"
 	"customer_path" "Customer Nr"
@@ -286,6 +286,9 @@ set left_scale_options {
 	"provider_path" "Provider Nr"
 	"provider_type" "Provider Type"
 	"provider_status" "Provider Status"
+
+	"creation_user_name" "Creation User Name"
+	"creation_user_cost_center_name" "Creation User Department"
 
 	"cost_type" "Cost Type"
 	"cost_status" "Cost Status"
@@ -302,6 +305,9 @@ set left_scale_options {
 # CategoryWidget for display. This widget shows distinct values suitable
 # as dimension.
 
+# ----------------------------------------------------------------
+# Companies (both Customer and Provider)
+#
 set company_dynfield_sql "
 	select	aa.attribute_name,
 		aa.pretty_name,
@@ -346,6 +352,9 @@ db_foreach company_dynfield_attributes $company_dynfield_sql {
     }
 }
 
+# ----------------------------------------------------------------
+# (Main-) Projects
+#
 set project_dynfield_sql "
 	select	aa.attribute_name,
 		aa.pretty_name,
@@ -369,9 +378,7 @@ db_foreach project_dynfield_attributes $project_dynfield_sql {
     lappend left_scale_options "Project $pretty_name"
 
     # Skip adding "deref" stuff if the variable is not used
-    if {[lsearch $dimension_vars "${attribute_name}_deref"] < 0} { 
-	continue 
-    }
+    if {[lsearch $dimension_vars "${attribute_name}_deref"] < 0} { continue }
 
     # Catch the generic ones - We know how to dereferentiate integer references of these fields.
     if {"" != $deref_plpgsql_function} {
@@ -381,11 +388,54 @@ db_foreach project_dynfield_attributes $project_dynfield_sql {
     }
 }
 
+# ----------------------------------------------------------------
+# Creation User
+#
+set dynfield_sql "
+	select	aa.attribute_name,
+		aa.pretty_name,
+		aa.object_type,
+		aa.table_name,
+		w.widget as tcl_widget,
+		w.widget_name as dynfield_widget,
+		w.deref_plpgsql_function
+	from
+		im_dynfield_attributes a,
+		im_dynfield_widgets w,
+		acs_attributes aa
+	where
+		a.widget_name = w.widget_name
+		and a.acs_attribute_id = aa.attribute_id
+		and w.widget in ('select', 'generic_sql', 'im_category_tree', 'im_cost_center_tree', 'checkbox')
+		and aa.object_type in ('person')
+"
 
+db_foreach dynfield_attributes $dynfield_sql {
+    lappend left_scale_options "${attribute_name}_deref"
+    lappend left_scale_options "Creation User $pretty_name"
+
+    # Skip adding "deref" stuff if the variable is not looked at...
+#    if {[lsearch $dimension_vars ${attribute_name}_deref] < 0} { continue }
+
+    switch $table_name {
+	im_employees { set table_prefix "e" }
+	users { set table_prefix "u" }
+	parties { set table_prefix "pa" }
+	default { set table_prefix "pe" }
+    }
+
+    # Catch the generic ones - We know how to dereferentiate integer references of these fields.
+    set deref "${deref_plpgsql_function}($table_prefix.$attribute_name) as ${attribute_name}_deref"
+    lappend derefs $deref
+}
+
+
+# ----------------------------------------------------------------
+# Sort the left_scale_options
+#
+
+set left_scale_options [im_reporting_cube_sort_options $left_scale_options]
 if {[llength $derefs] == 0} { lappend derefs "1 as dummy"}
-
-
-
 
 
 for {set i 0} {$i < [llength $left_scale_options]} {incr i 2} {
@@ -522,6 +572,7 @@ set cube_array [im_reporting_cubes_cube \
     -customer_type_id $customer_type_id \
     -customer_id $customer_id \
     -derefs $derefs \
+    -no_cache_p 1 \
 ]
 
 if {"" != $cube_array} {
