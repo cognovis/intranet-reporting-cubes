@@ -188,6 +188,8 @@ set gray "gray"
 set sigma "&Sigma;"
 set days_in_past 365
 
+set derefs [list]
+
 set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 set cur_format [im_l10n_sql_currency_format]
 set date_format [im_l10n_sql_date_format]
@@ -267,15 +269,6 @@ set top_vars_options {
 
 set left_scale_options {
 	"" ""
-	"main_project_name" "Main Project Name"
-	"main_project_nr" "Main Project Nr"
-	"main_project_type" "Main Project Type"
-	"main_project_status" "Main Project Status"
-
-	"sub_project_name" "Leaf Project Name"
-	"sub_project_nr" "Leaf Project Nr"
-	"sub_project_type" "Leaf Project Type"
-	"sub_project_status" "Leaf Project Status"
 
 	"customer_name" "Customer Name"
 	"customer_path" "Customer Nr"
@@ -290,6 +283,11 @@ set left_scale_options {
 	"creation_user_name" "Creation User Name"
 	"creation_user_cost_center_name" "Creation User Department"
 
+	"mainp_project_name" "Main Project Name"
+	"mainp_project_nr" "Main Project Nr"
+	"subp_project_name" "Leaf Project Name"
+	"subp_project_nr" "Leaf Project Nr"
+
 	"cost_type" "Cost Type"
 	"cost_status" "Cost Status"
 	"cost_center" "Cost Center"
@@ -297,6 +295,13 @@ set left_scale_options {
         "customer_contact_name" "Customer Contact"
         "customer_payment_method" "Customer Payment Method"
 }
+
+# ------------------------------------------------------------
+# Add project options
+lappend derefs "mainp.project_name as mainp_project_name"
+lappend derefs "mainp.project_nr as mainp_project_nr"
+lappend derefs "subp.project_name as subp_project_name"
+lappend derefs "subp.project_nr as subp_project_nr"
 
 
 
@@ -326,16 +331,12 @@ set company_dynfield_sql "
 		and aa.attribute_name not like 'default%'
 " 
 
-set derefs [list]
 db_foreach company_dynfield_attributes $company_dynfield_sql {
 
     lappend left_scale_options "cust_${attribute_name}_deref"
     lappend left_scale_options "Customer $pretty_name"
     lappend left_scale_options "prov_${attribute_name}_deref"
     lappend left_scale_options "Provider $pretty_name"
-
-    # How to dereferentiate the attribute_name to attribute_name_deref?
-    # The code is going to be executed as part of an SQL
 
     # Skip adding "deref" stuff if the variable is not looked at...
     if {[lsearch $dimension_vars "cust_${attribute_name}_deref"] + [lsearch $dimension_vars "prov_${attribute_name}_deref"] < 0} { 
@@ -352,8 +353,9 @@ db_foreach company_dynfield_attributes $company_dynfield_sql {
     }
 }
 
+
 # ----------------------------------------------------------------
-# (Main-) Projects
+# Main- and Leaf Projects
 #
 set project_dynfield_sql "
 	select	aa.attribute_name,
@@ -374,19 +376,29 @@ set project_dynfield_sql "
 " 
 db_foreach project_dynfield_attributes $project_dynfield_sql {
 
-    lappend left_scale_options "${attribute_name}_deref"
-    lappend left_scale_options "Project $pretty_name"
+    lappend left_scale_options "mainp_${attribute_name}_deref"
+    lappend left_scale_options "Main Project $pretty_name"
 
-    # Skip adding "deref" stuff if the variable is not used
-    if {[lsearch $dimension_vars "${attribute_name}_deref"] < 0} { continue }
+    lappend left_scale_options "subp_${attribute_name}_deref"
+    lappend left_scale_options "Leaf Project $pretty_name"
+
+    # Skip adding "deref" stuff if the variable is not looked at...
+    if {[lsearch $dimension_vars "mainp_${attribute_name}_deref"] < 0 && [lsearch $dimension_vars "subp_${attribute_name}_deref"] < 0} { 
+	continue 
+    }
 
     # Catch the generic ones - We know how to dereferentiate integer references of these fields.
     if {"" != $deref_plpgsql_function} {
-	lappend derefs "${deref_plpgsql_function} (mainp.$attribute_name) as ${attribute_name}_deref"
+	lappend derefs "${deref_plpgsql_function} (mainp.$attribute_name) as mainp_${attribute_name}_deref"
+	lappend derefs "${deref_plpgsql_function} (subp.$attribute_name) as subp_${attribute_name}_deref"
     } else {
-	lappend derefs "mainp.$attribute_name as ${attribute_name}_deref"
+	lappend derefs "mainp.$attribute_name as mainp_${attribute_name}_deref"
+	lappend derefs "subp.$attribute_name as subp_${attribute_name}_deref"
     }
 }
+
+# ad_return_complaint 1 "<pre>[join $derefs "\n"]</pre>"
+
 
 # ----------------------------------------------------------------
 # Creation User
@@ -415,7 +427,9 @@ db_foreach dynfield_attributes $dynfield_sql {
     lappend left_scale_options "Creation User $pretty_name"
 
     # Skip adding "deref" stuff if the variable is not looked at...
-#    if {[lsearch $dimension_vars ${attribute_name}_deref] < 0} { continue }
+    if {[lsearch $dimension_vars ${attribute_name}_deref] < 0} { 
+	continue 
+    }
 
     switch $table_name {
 	im_employees { set table_prefix "e" }

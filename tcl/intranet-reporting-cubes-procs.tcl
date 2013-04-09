@@ -336,11 +336,8 @@ ad_proc im_reporting_cubes_finance {
     set inner_sql "
   		select
   			o.creation_user,
-  			p.project_name as sub_project_name,
-  			p.project_nr as sub_project_nr,
-  			p.project_type_id as sub_project_type_id,
-  			p.project_status_id as sub_project_status_id,
-  			tree_ancestor_key(p.tree_sortkey, 1) as main_project_sortkey,
+			p.project_id as sub_project_id,
+  			tree_ancestor_key(p.tree_sortkey, 1) as mainp_tree_sortkey,
   			trunc((c.paid_amount * 
   			  im_exchange_rate(c.effective_date::date, c.currency, :default_currency)) :: numeric
   			  , 2) as paid_amount_converted,
@@ -382,9 +379,6 @@ ad_proc im_reporting_cubes_finance {
   		to_char(c.effective_date, 'DD') as day_of_month,
   		substring(c.cost_name, 1, 14) as cost_name_cut,
     
-  		im_category_from_id(c.sub_project_type_id) as sub_project_type,
-  		im_category_from_id(c.sub_project_status_id) as sub_project_status,
-    
   		mainp.project_name as main_project_name,
   		mainp.project_nr as main_project_nr,
   		mainp.project_type_id as main_project_type_id,
@@ -411,7 +405,8 @@ ad_proc im_reporting_cubes_finance {
                 $derefs    
   	from
   		($inner_sql) c
-  		LEFT OUTER JOIN im_projects mainp ON (c.main_project_sortkey = mainp.tree_sortkey)
+  		LEFT OUTER JOIN im_projects mainp ON (c.mainp_tree_sortkey = mainp.tree_sortkey)
+  		LEFT OUTER JOIN im_projects subp ON (c.project_id = subp.project_id)
   		LEFT OUTER JOIN im_companies cust ON (c.customer_id = cust.company_id)
   		LEFT OUTER JOIN im_companies prov ON (c.provider_id = prov.company_id)
 		LEFT OUTER JOIN im_invoices inv ON (c.cost_id = inv.invoice_id)
