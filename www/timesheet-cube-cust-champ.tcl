@@ -318,6 +318,15 @@ set left_scale_options [im_reporting_cube_sort_options $left_scale_options]
 
 # ------------------------------------------------------------
 # Determine which "dereferenciations" we need (pulling out nice value for integer reference)
+
+set project_path_full_sql "
+	CASE (select im_project_sub_project_name_path(h.sub_project_id,false,false)) WHEN '' THEN '-- Not found --' ELSE (select im_project_sub_project_name_path(h.sub_project_id,false,false)) END as project_path_full
+"
+
+set project_path_shortend_sql "
+	CASE (select im_project_sub_project_name_path(h.sub_project_id,true,true)) WHEN '' THEN '-- Not found --' ELSE (select im_project_sub_project_name_path(h.sub_project_id,true,true)) END as project_path_shortend
+"
+
 foreach var $dimension_vars {
     switch $var {
 	company_type { lappend derefs "im_category_from_id(h.company_type_id) as company_type" }
@@ -336,14 +345,15 @@ foreach var $dimension_vars {
 	customer_type { lappend derefs "im_category_from_id(h.company_type_id) as customer_type" }
 	customer_status { lappend derefs "im_category_from_id(h.company_status_id) as customer_status" }
 
-	project_path_shortend { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,true,true)) WHEN '' THEN '-- Not found --' END as project_path_shortend" }
-	project_path_full { lappend derefs "CASE (select im_project_sub_project_name_path(h.sub_project_id,false,false)) WHEN '' THEN '-- Not found --' END as project_path_full" }
+	project_path_shortend { lappend derefs $project_path_shortend_sql }
+	project_path_full { lappend derefs $project_path_full_sql }
 
 	sub_project_name_with_path { lappend derefs "(select im_project_sub_project_name_path(h.sub_project_id,true,true))||sub_project_name as sub_project_name_with_path" }
 	
 	material_name { lappend derefs "CASE COALESCE(task_material_id,0) WHEN 0 THEN '-- Not found --' ELSE im_material_name_from_id(task_material_id) END as material_name" }
     }
 }
+
 
 
 if {[llength $derefs] == 0} { lappend derefs "1 as dummy"}
