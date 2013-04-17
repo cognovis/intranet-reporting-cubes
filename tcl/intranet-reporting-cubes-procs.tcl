@@ -336,7 +336,12 @@ ad_proc im_reporting_cubes_finance {
     set inner_sql "
   		select
   			o.creation_user,
+                        p.project_name as sub_project_name,
+                        p.project_nr as sub_project_nr,
+                        p.project_type_id as sub_project_type_id,
+                        p.project_status_id as sub_project_status_id,
 			p.project_id as sub_project_id,
+			tsk.material_id as task_material_id,
   			tree_ancestor_key(p.tree_sortkey, 1) as mainp_tree_sortkey,
   			trunc((c.paid_amount * 
   			  im_exchange_rate(c.effective_date::date, c.currency, :default_currency)) :: numeric
@@ -349,6 +354,7 @@ ad_proc im_reporting_cubes_finance {
 			acs_objects o,
   			im_costs c
   			LEFT OUTER JOIN im_projects p ON (c.project_id = p.project_id)
+			LEFT OUTER JOIN im_timesheet_tasks tsk ON (p.project_id = tsk.task_id)
   		where
   			o.object_id = c.cost_id
   			and c.cost_type_id in ([join $cost_type_id ", "])
@@ -363,6 +369,8 @@ ad_proc im_reporting_cubes_finance {
     }
 
     # Aggregate additional/important fields to the fact table.
+    set name_order [parameter::get -package_id [apm_package_id_from_key intranet-core] -parameter "NameOrder" -default 1]
+
     set middle_sql "
   	select
   		c.*,
@@ -401,7 +409,7 @@ ad_proc im_reporting_cubes_finance {
   		im_category_from_id(prov.company_status_id) as provider_status,
 
 		im_cost_center_name_from_id(e.department_id) as creation_user_cost_center_name,
-		im_name_from_user_id(c.creation_user) as creation_user_name
+		im_name_from_user_id(c.creation_user, $name_order) as creation_user_name
                 $derefs    
   	from
   		($inner_sql) c
