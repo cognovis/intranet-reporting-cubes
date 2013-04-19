@@ -499,6 +499,7 @@ if { ![empty_string_p $where_clause] } {
 # ------------------------------------------------------------
 # Define the report - SQL, counters, headers and footers 
 #
+set name_order [parameter::get -package_id [apm_package_id_from_key intranet-core] -parameter "NameOrder" -default 1]
 
 # Inner - Try to be as selective as possible for the relevant data from the fact table.
 set inner_sql "
@@ -518,7 +519,7 @@ set inner_sql "
 			e.*,
 			im_name_from_user_id(e.supervisor_id) as employee_supervisor,
 			im_cost_center_name_from_id(e.department_id) as department,
-			im_name_from_user_id(u.user_id) as user_name,
+			im_name_from_user_id(u.user_id, $name_order) as user_name,
 			im_reporting_cube_tree_ancestor_key(p.tree_sortkey, 1) as main_project_sortkey,
 			im_reporting_cube_tree_ancestor_key(p.tree_sortkey, 2) as main2_project_sortkey
 		from
