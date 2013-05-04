@@ -17,7 +17,7 @@ ad_page_contract {
     { left_var1 "customer_name" }
     { left_var2 "" }
     { left_var3 "" }
-    { cost_type_id:multiple "3700" }
+    { cost_type_id:multiple "3718" }
     { customer_type_id:integer 0 }
     { customer_id:integer 0 }
 
@@ -153,6 +153,9 @@ im_invoices_check_for_multi_project_invoices
 # ------------------------------------------------------------
 # Page Title & Help Text
 
+# Customization CHAMP
+set cost_type_id 3718
+
 set cost_type [db_list cost_type "
 	select	im_category_from_id(category_id)
 	from	im_categories
@@ -245,6 +248,11 @@ set cost_type_options {
 
 }
 
+# Overwriting customization CHAMP
+set cost_type_options {
+	3718 "Timesheet Cost"
+}
+
 set non_active_cost_type_options {
 	3714 "Employee Salary"
         3716 "Repeating Cost"
@@ -278,8 +286,8 @@ set left_scale_options {
 	"provider_type" "Provider Type"
 	"provider_status" "Provider Status"
 
-	"creation_user_name" "Creation User Name"
-	"creation_user_cost_center_name" "Creation User Department"
+	"creation_user_name" "User Name"
+	"creation_user_cost_center_name" "User Department"
 
 	"mainp_project_name" "Main Project Name"
 	"mainp_project_nr" "Main Project Nr"
@@ -445,7 +453,7 @@ set dynfield_sql "
 
 db_foreach dynfield_attributes $dynfield_sql {
     lappend left_scale_options "${attribute_name}_deref"
-    lappend left_scale_options "Creation User $pretty_name"
+    lappend left_scale_options "User $pretty_name"
 
     # Skip adding "deref" stuff if the variable is not looked at...
     if {[lsearch $dimension_vars ${attribute_name}_deref] < 0} { 
@@ -521,7 +529,7 @@ ns_write "
 	<tr>
 	  <td class=form-label>Cost Type</td>
 	  <td class=form-widget colspan=3>
-	    [im_select -translate_p 1 -multiple_p 1 -size 7 cost_type_id $cost_type_options $cost_type_id]
+	    [im_select -translate_p 1  cost_type_id $cost_type_options $cost_type_id]
 	  </td>
 	</tr>
 	<tr>
