@@ -9,8 +9,8 @@
 ad_page_contract {
     Cost Cube
 } {
-    { start_date "2000-01-01" }
-    { end_date "2099-12-31" }
+    { start_date "" }
+    { end_date ""}
     { top_var1 "year quarter_of_year" }
     { top_var2 "" }
     { top_var3 "" }
@@ -141,6 +141,34 @@ if {"" != $end_date && ![regexp {^[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]$}
     ad_return_complaint 1 "End Date doesn't have the right format.<br>
     Current value: '$end_date'<br>
     Expected format: 'YYYY-MM-DD'"
+}
+
+# Preset start/end date if no value 
+set days_in_past 7
+
+db_1row todays_date "
+select
+        to_char(sysdate::date - :days_in_past::integer, 'YYYY') as todays_year,
+        to_char(sysdate::date - :days_in_past::integer, 'MM') as todays_month,
+        to_char(sysdate::date - :days_in_past::integer, 'DD') as todays_day
+from dual
+"
+
+if {"" == $start_date} {
+    set start_date "$todays_year-$todays_month-01"
+}
+
+
+db_1row end_date "
+select
+        to_char(to_date(:start_date, 'YYYY-MM-DD') + 31::integer, 'YYYY') as end_year,
+        to_char(to_date(:start_date, 'YYYY-MM-DD') + 31::integer, 'MM') as end_month,
+        to_char(to_date(:start_date, 'YYYY-MM-DD') + 31::integer, 'DD') as end_day
+from dual
+"
+
+if {"" == $end_date} {
+    set end_date "$end_year-$end_month-01"
 }
 
 
