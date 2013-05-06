@@ -11,7 +11,7 @@ ad_page_contract {
 } {
     { start_date "" }
     { end_date ""}
-    { top_var1 "year quarter_of_year" }
+    { top_var1 "year month_of_year" }
     { top_var2 "" }
     { top_var3 "" }
     { left_var1 "customer_name" }
@@ -24,6 +24,7 @@ ad_page_contract {
     { left_vars "" }
     { top_vars "" }
 }
+
 
 # ------------------------------------------------------------
 # Define Dimensions
