@@ -218,6 +218,9 @@ set left_scale_options {
 	"customer_name" "Customer Name"
 	"project_path_shortend" "Project Path (shortend)"
 	"project_path_full" "Project Path (full)"
+
+        "employee_first_names" "Employee First Names"
+        "employee_last_name" "Employee Last Name"
 	        	
     	"sub_project_name_with_path" "Leaf Project/Task Name with path"
 
@@ -517,6 +520,8 @@ set inner_sql "
 			c.company_name as customer_name,
 			u.*,
 			e.*,
+			(select person__first_names(u.user_id)) as employee_first_names, 
+			(select person__last_name(u.user_id)) as employee_last_name, 
 			im_name_from_user_id(e.supervisor_id) as employee_supervisor,
 			im_cost_center_name_from_id(e.department_id) as department,
 			im_name_from_user_id(u.user_id, $name_order) as user_name,
