@@ -212,15 +212,15 @@ set left_scale_options {
 	"sub_project_type" "Leaf Project/Task Type"
 	"sub_project_status" "Leaf Project/Task Status"
 
-	"user_name" "User Name"
+	"user_name" "Employee Name (Full)"
 	"department" "User Department"
 	"employee_supervisor" "User Supervisor"
 	"customer_name" "Customer Name"
 	"project_path_shortend" "Project Path (shortend)"
 	"project_path_full" "Project Path (full)"
 
-        "employee_first_names" "Employee First Names"
-        "employee_last_name" "Employee Last Name"
+        "employee_first_names" "Employee Name (First)"
+        "employee_last_name" "Employee Name (Last)"
 	        	
     	"sub_project_name_with_path" "Leaf Project/Task Name with path"
 
