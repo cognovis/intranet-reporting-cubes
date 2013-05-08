@@ -315,7 +315,7 @@ set left_scale_options {
 	"provider_type" "Provider Type"
 	"provider_status" "Provider Status"
 
-	"creation_user_name" "User Name"
+	"creation_user_name" "Employee Name (Full)"
 	"creation_user_cost_center_name" "User Department"
 
 	"mainp_project_name" "Main Project Name"
@@ -337,6 +337,8 @@ set left_scale_options {
 
     	"material_name" "Material"
 
+        "employee_first_names" "Employee Name (First)"
+        "employee_last_name" "Employee Name (Last)"
 }
 
 # ------------------------------------------------------------
@@ -360,6 +362,10 @@ set project_path_shortend_sql "
 lappend derefs $project_path_shortend_sql
 lappend derefs $project_path_full_sql
 lappend derefs "(select im_project_sub_project_name_path(c.sub_project_id,true,true))||sub_project_name as sub_project_name_with_path"
+
+# Employee First/Last names 
+lappend derefs "(select person__first_names(u.user_id)) as employee_first_names"
+lappend derefs "(select person__last_name(u.user_id)) as employee_last_name"
 
 # Material
 lappend derefs "CASE COALESCE(task_material_id,0) WHEN 0 THEN '-- Not found --' ELSE im_material_name_from_id(task_material_id) END as material_name" 
