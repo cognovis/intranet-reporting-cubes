@@ -146,11 +146,7 @@ if {"" != $end_date && ![regexp {^[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]$}
 
 # ------------------------------------------------------------
 # Deal with invoices related to multiple projects
-
 im_invoices_check_for_multi_project_invoices
-
-
-
 
 # ------------------------------------------------------------
 # Page Title & Help Text
@@ -472,8 +468,6 @@ set left_scale_options $sorted_left_scale_options
 
 # Write out HTTP header, considering CSV/MS-Excel formatting
 im_report_write_http_headers -output_format $output_format -report_name "finance-cube"
-# im_report_write_http_headers -output_format "html" -report_name "finance-cube"
-
 
 switch $output_format {
     html {
