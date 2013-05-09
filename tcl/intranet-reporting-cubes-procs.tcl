@@ -150,6 +150,7 @@ ad_proc im_reporting_cubes_cube {
     switch $cube_name {
 	finance {
 	    set cube_array [im_reporting_cubes_finance \
+                -output_format $output_format \
 		-start_date $start_date \
 		-end_date $end_date \
 		-left_vars $left_vars \
@@ -275,6 +276,7 @@ ad_proc im_reporting_cubes_cube {
 # ----------------------------------------------------------------------
 
 ad_proc im_reporting_cubes_finance {
+    { -output_format $output_format }
     { -start_date "1900-01-01" }
     { -end_date "2099-12-31" }
     { -left_vars "customer_name" }
@@ -293,7 +295,12 @@ ad_proc im_reporting_cubes_finance {
     # ------------------------------------------------------------
     # Defaults
     
-    set sigma "&Sigma;"
+    if { "html" == $output_format } {
+	set sigma "&Sigma;"
+    } else {
+	set sigma " "
+    }
+
     set default_currency [ad_parameter -package_id [im_package_cost_id] "DefaultCurrency" "" "EUR"]
 
     # The complete set of dimensions - used as the key for
@@ -320,12 +327,10 @@ ad_proc im_reporting_cubes_finance {
 	lappend criteria "mainp.project_status_id in ([join [im_sub_categories $project_status_id] ", "])"
     }
 
-
     set where_clause [join $criteria " and\n\t\t\t"]
     if { ![empty_string_p $where_clause] } {
         set where_clause " and $where_clause"
     }
-    
     
     # ------------------------------------------------------------
     # Define the report - SQL, counters, headers and footers 
@@ -452,7 +457,10 @@ ad_proc im_reporting_cubes_finance {
   	from		($middle_sql) c
   	order by	[join $top_vars ", "]
     "]
-    lappend top_scale [list $sigma $sigma $sigma $sigma $sigma $sigma]
+    
+    if { "html" == $output_format } {
+	 lappend top_scale [list $sigma $sigma $sigma $sigma $sigma $sigma]
+    }
 
     # ------------------------------------------------------------
     # Create a sorted left dimension
@@ -478,20 +486,23 @@ ad_proc im_reporting_cubes_finance {
   	from		($middle_sql) c
   	order by	[join $left_vars ", "]
     "]
-    set last_sigma [list]
-    foreach t [lindex $left_scale 0] {
-        lappend last_sigma $sigma
+
+    if { "html" == $output_format } {
+	set last_sigma [list]
+	foreach t [lindex $left_scale 0] {
+	    lappend last_sigma $sigma
+	}
+	lappend left_scale $last_sigma
     }
-    lappend left_scale $last_sigma
-    
+   
     # ------------------------------------------------------------
     # Execute query and aggregate values into a Hash array
-    
+
     db_foreach query $sql {
-    
+
         # Get all possible permutations (N out of M) from the dimension_vars
         set perms [im_report_take_all_ordered_permutations $dimension_vars]
-    
+   
         # Add the invoice amount to ALL of the variable permutations.
         # The "full permutation" (all elements of the list) corresponds
         # to the individual cell entries.
@@ -506,7 +517,7 @@ ad_proc im_reporting_cubes_finance {
 	    # something like "$year-$month-$customer_id"
 	    set key_expr "\$[join $perm "-\$"]"
 	    set key [eval "set a \"$key_expr\""]
-    
+
 	    # Sum up the values for the matrix cells
 	    set sum 0
 	    if {[info exists hash($key)]} { set sum $hash($key) }
@@ -732,6 +743,7 @@ ad_proc im_reporting_cubes_price {
     
     # ------------------------------------------------------------
     # Execute query and aggregate values into a Hash array
+
     
     db_foreach query $sql {
 
