@@ -20,6 +20,7 @@ ad_page_contract {
     { cost_type_id:multiple "3718" }
     { customer_type_id:integer 0 }
     { customer_id:integer 0 }
+    { output_format "html" }
 
     { left_vars "" }
     { top_vars "" }
@@ -215,7 +216,7 @@ set rowclass(0) "roweven"
 set rowclass(1) "rowodd"
 
 set gray "gray"
-set sigma "&Sigma;"
+
 set days_in_past 365
 
 set derefs [list]
@@ -539,101 +540,109 @@ set left_scale_options $sorted_left_scale_options
 #
 
 # Write out HTTP header, considering CSV/MS-Excel formatting
-im_report_write_http_headers -output_format "html"
+im_report_write_http_headers -output_format $output_format -report_name "finance-cube"
 
-ns_write "
-[im_header]
-[im_navbar]
-<table cellspacing=0 cellpadding=0 border=0>
-<form>
-[export_form_vars project_id]
-<tr valign=top><td>
-	<table border=0 cellspacing=1 cellpadding=1>
-	<tr>
-	  <td class=form-label>Start Date</td>
-	  <td class=form-widget colspan=3>
-	    <input type=textfield name=start_date value=$start_date>
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>End Date</td>
-	  <td class=form-widget colspan=3>
-	    <input type=textfield name=end_date value=$end_date>
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Cost Type</td>
-	  <td class=form-widget colspan=3>
-	    [im_select -translate_p 1  cost_type_id $cost_type_options $cost_type_id]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Customer Type</td>
-	  <td class=form-widget colspan=3>
-	    [im_category_select -include_empty_p 1 "Intranet Company Type" customer_type_id $customer_type_id]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Customer</td>
-	  <td class=form-widget colspan=3>
-	    [im_company_select customer_id $customer_id]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-widget colspan=2 align=center>Left-Dimension</td>
-	  <td class=form-widget colspan=2 align=center>Top-Dimension</td>
-	</tr>
-	<tr>
-	  <td class=form-label>Left 1</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 left_var1 $left_scale_options $left_var1]
-	  </td>
+switch $output_format {
+    html {
+        ns_write "
+                 [im_header]
+                 [im_navbar]
+                 <form>
+                 <table cellspacing=0 cellpadding=0 border=0>
+                        [export_form_vars project_id]
+                        <tr valign=top><td>
+                                <table border=0 cellspacing=1 cellpadding=1>
+                                <tr>
+                                        <td class=form-label>Start Date</td>
+                                        <td class=form-widget colspan=3>
+                                        <input type=textfield name=start_date value=$start_date>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td class=form-label>End Date</td>
+                                        <td class=form-widget colspan=3>
+                                            <input type=textfield name=end_date value=$end_date>
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td class=form-label>Cost Type</td>
+                                        <td class=form-widget colspan=3>
+                                            [im_select -translate_p 1 -multiple_p 0 cost_type_id $cost_type_options $cost_type_id]
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td class=form-label>Customer Type</td>
+                                        <td class=form-widget colspan=3>
+                                            [im_category_select -include_empty_p 1 "Intranet Company Type" customer_type_id $customer_type_id]
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td class=form-label>Customer</td>
+                                        <td class=form-widget colspan=3>
+                                            [im_company_select customer_id $customer_id]
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td class=form-widget colspan=2 align=center>Left-Dimension</td>
+                                        <td class=form-widget colspan=2 align=center>Top-Dimension</td>
+                                </tr>
+                                <tr>
+                                        <td class=form-label>Left 1</td>
+                                        <td class=form-widget>
+                                            [im_select -translate_p 0 left_var1 $left_scale_options $left_var1]
+                                        </td>
 
-	  <td class=form-label>Date Dimension</td>
-	    <td class=form-widget>
-	      [im_select -translate_p 0 top_var1 $top_vars_options $top_var1]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Left 2</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 left_var2 $left_scale_options $left_var2]
-	  </td>
+                                        <td class=form-label>Date Dimension</td>
+                                        <td class=form-widget>
+                                            [im_select -translate_p 0 top_var1 $top_vars_options $top_var1]
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td class=form-label>Left 2</td>
+                                        <td class=form-widget>
+                                            [im_select -translate_p 0 left_var2 $left_scale_options $left_var2]
+                                        </td>
+                                        <td class=form-label>Top 1</td>
+                                        <td class=form-widget>
+                                            [im_select -translate_p 0 top_var2 $left_scale_options $top_var2]
+                                        </td>
+                                </tr>
+                                <tr>
+                                        <td class=form-label>Left 3</td>
+                                        <td class=form-widget>
+                                            [im_select -translate_p 0 left_var3 $left_scale_options $left_var3]
+                                        </td>
+                                        <td class=form-label>Top 2</td>
+                                        <td class=form-widget>
+                                            [im_select -translate_p 0 top_var3 $left_scale_options $top_var3]
+                                        </td>
+                                </tr>
+                                <tr>
+                                          <td class=form-label> [lang::message::lookup "" intranet-reporting.Format "Format"]</td>
+                                          <td class=form-widget>
+                                                [im_report_output_format_select output_format "" $output_format]
+                                          </td>
+                                </tr>
 
-	  <td class=form-label>Top 1</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 top_var2 $left_scale_options $top_var2]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label>Left 3</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 left_var3 $left_scale_options $left_var3]
-	  </td>
-	  <td class=form-label>Top 2</td>
-	  <td class=form-widget>
-	    [im_select -translate_p 0 top_var3 $left_scale_options $top_var3]
-	  </td>
-	</tr>
-	<tr>
-	  <td class=form-label></td>
-	  <td class=form-widget colspan=3><input type=submit value=Submit></td>
-	</tr>
-	</table>
-</td>
-<td>
-	<table>
-	</table>
-</td>
-<td>
-	<table cellspacing=2 width=90%>
-	<tr><td>$help_text</td></tr>
-	</table>
-</td>
-</tr>
-</form>
-</table>
-"
+                                <tr>
+                                        <td class=form-label></td>
+                                        <td class=form-widget colspan=3><input type=submit value=Submit></td>
+                                </tr>
+                                </table>
+                        </td>
+                        <td></td>
+                        <td>
+                                <table cellspacing=2 width=90%>
+                                        <tr><td>$help_text</td></tr>
+                                </table>
+                        </td>
+                </tr>
+                </table>
+                </form>
+                "
+    }
+}
+
 
 
 # ------------------------------------------------------------
@@ -641,6 +650,7 @@ ns_write "
 #
 
 set cube_array [im_reporting_cubes_cube \
+    -output_format $output_format \
     -cube_name "finance" \
     -start_date $start_date \
     -end_date $end_date \
@@ -666,6 +676,7 @@ if {"" != $cube_array} {
     # Display the Cube Table
     
     ns_write [im_reporting_cubes_display \
+	      -output_format $output_format \
 	      -hash_array [array get hash] \
 	      -left_vars $left \
 	      -top_vars $top \
@@ -678,6 +689,7 @@ if {"" != $cube_array} {
 # ------------------------------------------------------------
 # Finish up the table
 
-ns_write "[im_footer]\n"
-
+if { "html" == $output_format } {
+    ns_write "[im_footer]\n"
+}
 
