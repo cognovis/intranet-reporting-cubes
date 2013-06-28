@@ -488,11 +488,11 @@ ad_proc im_reporting_cubes_finance {
     "]
 
     if { "html" == $output_format } {
-	set last_sigma [list]
-	foreach t [lindex $left_scale 0] {
-	    lappend last_sigma $sigma
-	}
-	lappend left_scale $last_sigma
+		set last_sigma [list]
+		foreach t [lindex $left_scale 0] {
+			lappend last_sigma "$sigma"
+		}
+		lappend left_scale $last_sigma
     }
    
     # ------------------------------------------------------------
@@ -1085,21 +1085,23 @@ ad_proc im_reporting_cubes_display {
     set left_scale_pretty [list]
     set last_item [lindex $left_scale 0]
     foreach scale_pretty_item $left_scale {
-	
-	for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
-	    set last_var [lindex $last_item $i]
-	    set cur_var [lindex $scale_pretty_item $i]
-	    if {$last_var != $cur_var} {
-		
-		set item [lrange $last_item 0 $i]
-		while {[llength $item] < [llength $last_item]} { lappend item $sigma }
-		lappend left_scale_pretty $item
-	    }
-	}
-	lappend left_scale_pretty $scale_pretty_item
-	set last_item $scale_pretty_item
+		for {set i [expr [llength $last_item]-2]} {$i >= 0} {set i [expr $i-1]} {
+			set last_var [lindex $last_item $i]
+			set cur_var [lindex $scale_pretty_item $i]
+			if {$last_var != $cur_var} {
+				set item [lrange $last_item 0 $i]
+				while {[llength $item] < [llength $last_item]} { 
+					lappend item "$sigma" 
+				}
+				# Make output of totals and subtotals optional for csv 
+				if { "html" == $output_format || [parameter::get -package_id [apm_package_id_from_key intranet-reporting-cubes] -parameter "ShowTotalsAndSubtotalsCSV" -default 1] } {
+					lappend left_scale_pretty "$item"
+				}
+			}
+		}
+		lappend left_scale_pretty "$scale_pretty_item"
+		set last_item $scale_pretty_item
     }
-
 
     # ------------------------------------------------------------
     # Display the Table Header
