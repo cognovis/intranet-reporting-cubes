@@ -17,6 +17,7 @@ ad_page_contract {
     { left_scale2 "main_project_name" }
     { left_scale3 "" }
     { left_scale4 "" }
+    { left_scale5 "" }
     { customer_type_id:integer 0 }
     { project_type_id:integer 0 }
     { customer_id:integer 0 }
@@ -38,6 +39,7 @@ if {"" != $left_scale1} { lappend left_vars $left_scale1 }
 if {"" != $left_scale2} { lappend left_vars $left_scale2 }
 if {"" != $left_scale3} { lappend left_vars $left_scale3 }
 if {"" != $left_scale4} { lappend left_vars $left_scale4 }
+if {"" != $left_scale5} { lappend left_vars $left_scale5 }
 
 # Top Dimension
 set top_vars [ns_urldecode $top_vars]
@@ -443,6 +445,13 @@ switch $output_format {
           				  </td>
 					  <td colspan='2'></td>
 				</tr>
+                <tr>
+                          <td class=form-label>Left 5</td>
+                          <td class=form-widget>
+                                  [im_select -translate_p 0 left_scale5 $left_scale_options $left_scale5]
+                          </td>
+                      <td colspan='2'></td>
+                </tr>
 				<tr>
 				          <td colspan='4'>&nbsp;</td>
 				</tr>
