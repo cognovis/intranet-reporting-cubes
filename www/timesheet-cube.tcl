@@ -108,7 +108,7 @@ set context_bar [im_context_bar $page_title]
 set context ""
 set help_text "<strong>$page_title</strong><br>
 
-This Pivot Table ('cube') is a kind of report that shows timesheet
+This Pivot Table ('cube') is a report that shows timesheet
 hours according to a number of 'dimensions' that you can specify.
 This cube effectively replaces a dozen of specific reports and allows
 you to 'drill down' into results.<p>
@@ -122,8 +122,13 @@ Please take note about the display of the project hierarchy:
 <li>'Leaf Project/Task' refers to the sub project or task at
     any level of depth where the hours have been logged.
 </ul>
+<br>
+<strong>Scope:</strong>
+<ul>
+<li>Report excludes projects marked as 'deleted'. For additional information about this project status please refer to the <a href='http://www.project-open.org/en/category_intranet_project_status'>Online Help</a></li>
+</ul>
+<br>
 "
-
 
 # ------------------------------------------------------------
 # Defaults
