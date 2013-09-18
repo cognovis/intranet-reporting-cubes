@@ -114,7 +114,6 @@ set page_title [lang::message::lookup "" intranet-reporting.Timesheet_Cube "Time
 set context_bar [im_context_bar $page_title]
 set context ""
 set help_text "
-
 This Pivot Table ('cube') is a report that shows timesheet
 hours according to a number of 'dimensions' that you can specify.
 This cube effectively replaces a dozen of specific reports and allows
@@ -123,11 +122,16 @@ you to 'drill down' into results.<p>
 <strong>Additional information about dimensions: </strong>
 <ul>
 <li>'Main Project' is the topmost project.
-<li>'Sub Project/Task' is the project or task below the main 
+<li>'Sub Project/Task' is the project or task below the main
     project. If the hours were logged on a main project, then
     the main project name will appear again.
 <li>'Leaf Project/Task' refers to the sub project or task at
     any level of depth where the hours have been logged.
+</ul>
+<br>
+<strong>Scope:</strong>
+<ul>
+<li>Report excludes projects marked as 'deleted'. For additional information about this project status please refer to the <a href='http://www.project-open.org/en/category_intranet_project_status'>Online Help</a></li>
 </ul>
 <br>
 <strong>Please note the following CHAMP particularities: </strong>
@@ -136,6 +140,7 @@ you to 'drill down' into results.<p>
 <li>'Material' is beeing determined at report execution. When changing the 'Material' attribute of a Timesheet Task, <strong>all</strong> hours logged against this task will be related to new 'Material'</li>
 </ul>
 "
+
 
 # ------------------------------------------------------------
 # Defaults
