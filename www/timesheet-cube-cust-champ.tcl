@@ -261,6 +261,7 @@ set dynfield_sql "
 		and aa.attribute_name not like 'default%'
 		-- Fix issues with certain duplicate fields. These fields are implemented hard coded.
 		and aa.attribute_name not in ('company_id', 'parent_id', 'supervisor_id')
+                and aa.attribute_name not in ('employee_champ_cost_center_id')
 " 
 
 set derefs [list]
