@@ -18,7 +18,7 @@ ad_library {
 ad_proc -public im_package_reporting_cubes_id {} {
     Returns the package id of the intranet-reporting-cubes module
 } {
-    return [util_memoize "im_package_reporting_cubes_id_helper"]
+    return [util_memoize im_package_reporting_cubes_id_helper]
 }
 
 ad_proc -private im_package_reporting_cubes_id_helper {} {
