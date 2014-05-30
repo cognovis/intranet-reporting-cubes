@@ -412,7 +412,7 @@ switch $output_format {
 					   </td>
 				</tr>
 				<tr>
-				  	  <td class=form-label>End Date<br><span style=\"font-size:7pt\">\[exluded\]</span></td>
+				  	  <td class=form-label>End Date<br><span style=\"font-size:7pt\">\[excluded\]</span></td>
 					  <td class=form-widget colspan=3>
 					      <input type=textfield name=end_date value=$end_date>
 					  </td>
