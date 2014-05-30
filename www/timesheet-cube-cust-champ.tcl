@@ -22,12 +22,31 @@ ad_page_contract {
     { project_type_id:integer 0 }
     { customer_id:integer 0 }
     { output_format "html" }
+    { employee_id "" }
+    { employee_start_date_after "" }
 }
 
 # ------------------------------------------------------------
 # Defaults
 # ------------------------------------------------------------
 set debug1 0
+
+# ------------------------------------------------------------
+# Validation
+# ------------------------------------------------------------
+
+if { "" != $employee_start_date_after } {
+    if {[catch {
+        if { $employee_start_date_after != [clock format [clock scan $employee_start_date_after] -format %Y-%m-%d] } {
+            ad_return_complaint 1 "<strong>[_ intranet-core.Start_Date]</strong> [lang::message::lookup "" intranet-core.IsNotaValidDate "is not a valid date"].<br>
+            [lang::message::lookup "" intranet-core.Current_Value "Current value"]: '$employee_start_date_after'<br>"
+        }
+    } err_msg]} {
+        ad_return_complaint 1 "<strong>[_ intranet-core.Start_Date]</strong> [lang::message::lookup "" intranet-core.DoesNotHaveRightFormat "doesn't have the right format"].<br>
+        [lang::message::lookup "" intranet-core.Current_Value "Current value"]: '$employee_start_date_after'<br>
+        [lang::message::lookup "" intranet-core.Expected_Format "Expected Format"]: 'YYYY-MM-DD'"
+    }
+}
 
 # ------------------------------------------------------------
 # Define Dimensions
@@ -393,7 +412,7 @@ switch $output_format {
 					   </td>
 				</tr>
 				<tr>
-				  	  <td class=form-label>End Date</td>
+				  	  <td class=form-label>End Date<br><span style=\"font-size:7pt\">\[exluded\]</span></td>
 					  <td class=form-widget colspan=3>
 					      <input type=textfield name=end_date value=$end_date>
 					  </td>
@@ -410,6 +429,17 @@ switch $output_format {
 					      [im_company_select customer_id $customer_id]
 					  </td>
 			        </tr>
+                <tr>
+                      <td class=form-label>Employee</td>
+                      <td class=form-widget colspan=3>[im_user_select -include_empty_p 1 -group_id [im_employee_group_id] employee_id $employee_id]</td>
+                </tr>
+                <tr>
+                      <td class=form-label>Employee Start Date after:</td>
+                      <td class=form-widget colspan=3>
+							<input name=\"employee_start_date_after\" value=\"$employee_start_date_after\" id=\"employee_start_date_after\" size=\"10\" type=\"text\">
+							<input type='button' style=\"height:20px; width:20px; background: url('/resources/acs-templating/calendar.gif');\" onclick =\"return showCalendar('employee_start_date_after', 'yyyy-mm-dd');\" >
+                      </td>
+                </tr>
 				<tr>
 				  	  <td class=form-widget colspan=2 align=center>Left-Dimension</td>
 					  <td class=form-widget colspan=2 align=center>Top-Dimension</td>
@@ -508,6 +538,14 @@ if {"" != $customer_type_id && 0 != $customer_type_id} {
     lappend criteria "c.company_type_id in ([join [im_sub_categories $customer_type_id] ","])"
 }
 
+if {"" != $employee_id && 0 != $employee_id} {
+    lappend criteria "u.user_id = :employee_id"
+}
+
+if { "" != $employee_start_date_after && 0 != $employee_start_date_after } {
+    lappend criteria "o.creation_date::date >= :employee_start_date_after::date"
+}
+
 set where_clause [join $criteria " and\n\t\t\t"]
 if { ![empty_string_p $where_clause] } {
     set where_clause " and $where_clause"
@@ -546,6 +584,7 @@ set inner_sql "
 			im_hours h,
 			im_projects p,
 			im_companies c,
+			acs_objects o,
 			cc_users u
 				LEFT OUTER JOIN im_employees e ON (u.user_id = e.employee_id)
 		where
@@ -555,6 +594,7 @@ set inner_sql "
 			and p.company_id = c.company_id
 			and h.day::date >= to_date(:start_date, 'YYYY-MM-DD')
 			and h.day::date < to_date(:end_date, 'YYYY-MM-DD')
+			and o.object_id = u.user_id
 			$where_clause
 "
 
