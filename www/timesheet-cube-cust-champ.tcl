@@ -244,14 +244,11 @@ set left_scale_options {
 	"customer_name" "Customer Name"
 	"project_path_shortend" "Project Path (shortend)"
 	"project_path_full" "Project Path (full)"
-
-        "employee_first_names" "Employee Name (First)"
-        "employee_last_name" "Employee Name (Last)"
-	        	
-    	"sub_project_name_with_path" "Leaf Project/Task Name with path"
-
-        "material_name" "Material"
-
+    "employee_first_names" "Employee Name (First)"
+    "employee_last_name" "Employee Name (Last)"
+	"hourly_cost" "Employee Hourly Cost"
+  	"sub_project_name_with_path" "Leaf Project/Task Name with path"
+    "material_name" "Material"
 }
 
 
@@ -321,15 +318,15 @@ db_foreach dynfield_attributes $dynfield_sql {
     }
 
     switch $dynfield_widget {
-	gender_select { set deref "im_category_from_id($attribute_name) as ${attribute_name}_deref" }
-	employees { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
-	employees_and_customers { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
-	customers { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
-	bit_member { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
-	active_projects { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
-	cost_centers { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
-	project_account_manager { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
-	pl_fachbereich { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		gender_select { set deref "im_category_from_id($attribute_name) as ${attribute_name}_deref" }
+		employees { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		employees_and_customers { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		customers { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		bit_member { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		active_projects { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		cost_centers { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		project_account_manager { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
+		pl_fachbereich { set deref "acs_object__name($attribute_name) as ${attribute_name}_deref" }
     }
     switch $attribute_name {
         employee_supervisor_id { set deref "im_name_from_user_id($attribute_name) as ${attribute_name}_deref" }
