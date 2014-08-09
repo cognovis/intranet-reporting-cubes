@@ -180,6 +180,11 @@ set top_vars_options {
 	"" "No Date Dimension" 
 	"year" "Year" 
 	"year quarter_of_year" "Year and Quarter" 
+	"year month_of_year" "Year and Month" 
+	"year quarter_of_year month_of_year" "Year, Quarter and Month" 
+	"year quarter_of_year month_of_year day_of_month" "Year, Quarter, Month and Day" 
+	"year week_of_year" "Year and Week"
+	"quarter_of_year year" "Quarter and Year (compare quarters)"
 	"month_of_year year" "Month and Year (compare months)"
 }
 
@@ -216,15 +221,10 @@ set creation_user_options [db_list_of_lists creation_users "
 	select	distinct
 		im_name_from_user_id(sro.creation_user) as creation_user_name, 
 		sro.creation_user
-	from
-		survsimp_surveys ss,
-		survsimp_responses sr,
+	from	survsimp_responses sr,
 		acs_objects sro
-	where
-		sr.survey_id = ss.survey_id and
-		sr.response_id = sro.object_id
-	order by 
-		creation_user_name
+	where	sr.response_id = sro.object_id
+	order by creation_user_name
 "]
 set creation_user_options [linsert $creation_user_options 0 {"" ""}]
 
@@ -232,12 +232,9 @@ set object_options [db_list_of_lists surveys "
 	select distinct
 		acs_object__name(sr.related_object_id) as object,
 		sr.related_object_id
-	from	survsimp_surveys ss,
-		survsimp_responses sr
-	where	sr.survey_id = ss.survey_id
-		and sr.related_object_id is not null
-	order by 
-		object
+	from	survsimp_responses sr
+	where	sr.related_object_id is not null
+	order by object
 "]
 set object_options [linsert $object_options 0 {"" ""}]
 
@@ -245,12 +242,9 @@ set context_options [db_list_of_lists surveys "
 	select distinct
 		acs_object__name(sr.related_context_id) as context,
 		sr.related_context_id
-	from	survsimp_surveys ss,
-		survsimp_responses sr
-	where	sr.survey_id = ss.survey_id
-		and sr.related_context_id is not null
-	order by 
-		context
+	from	survsimp_responses sr
+	where	sr.related_context_id is not null
+	order by context
 "]
 set context_options [linsert $context_options 0 {"" ""}]
 

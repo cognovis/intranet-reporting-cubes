@@ -855,6 +855,14 @@ ad_proc im_reporting_cubes_survsimp {
     if {"" != $related_context_id && 0 != $related_context_id} {
         lappend criteria "sr.related_context_id = :related_context_id"
     }
+    if {"" != $start_date && "" != $end_date} {
+        lappend criteria "sr.response_id in (
+		select	object_id
+		from	acs_objects
+		where	object_type = 'survsimp_response' and
+			creation_date between :start_date::date and :end_date::date
+	)"
+    }
     set where_clause [join $criteria " and\n\t\t\t"]
     if { ![empty_string_p $where_clause] } {
         set where_clause " and $where_clause"
@@ -872,7 +880,7 @@ ad_proc im_reporting_cubes_survsimp {
                 sq.question_text as question,
                 srot.creation_user as creation_user_id,
                 srot.creation_date as response_date,
-                im_name_from_user_id(srot.creation_user) as creation_user,
+                '<a href=/intranet/users/view?user_id=' || srot.creation_user || '>' || im_name_from_user_id(srot.creation_user) || '</a>' as creation_user,
                 acs_object__name(related_object_id) as object,
                 acs_object__name(related_context_id) as context
         from
