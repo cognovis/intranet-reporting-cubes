@@ -29,7 +29,7 @@ ad_proc -private im_package_reporting_cubes_id_helper {} {
 }
 
 
-ad_proc -private im_reporting_cube_sort_options { options} {
+ad_proc -public im_reporting_cube_sort_options { options} {
     Sort options alphabetically
 } {
     # Convert options list into list of list
